@@ -27,6 +27,7 @@ export function useColumn(column: Ref<ColumnType>) {
   const isTime = computed(() => abstractType.value === 'time' || uiDatatype.value === UITypes.Time)
   const isDateTime = computed(() => abstractType.value === 'datetime' || uiDatatype.value === UITypes.DateTime)
   const isJSON = computed(() => uiDatatype.value === UITypes.JSON)
+  const isGeoData = computed(() => uiDatatype.value === UITypes.GeoData)
   const isEnum = computed(() => uiDatatype.value === UITypes.SingleSelect)
   const isSingleSelect = computed(() => uiDatatype.value === UITypes.SingleSelect)
   const isSet = computed(() => uiDatatype.value === UITypes.MultiSelect)
@@ -55,6 +56,7 @@ export function useColumn(column: Ref<ColumnType>) {
       UITypes.AutoNumber,
       UITypes.SpecificDBType,
       UITypes.Geometry,
+      UITypes.GeoData,
     ].includes(uiDatatype.value),
   )
   const isManualSaved = computed(() =>
@@ -78,6 +80,7 @@ export function useColumn(column: Ref<ColumnType>) {
     isTime,
     isDateTime,
     isJSON,
+    isGeoData,
     isEnum,
     isSet,
     isURL,

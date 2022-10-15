@@ -379,6 +379,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.PhoneNumber:
         case UITypes.Email:
         case UITypes.URL:
+        case UITypes.GeoData:
           if (expectedType !== formulaTypes.STRING) {
             typeErrors.add(
               `Column '${parsedTree.name}' with ${formulaTypes.STRING} type is found but ${expectedType} type is expected`,
@@ -461,6 +462,7 @@ function getRootDataType(parsedTree: any): any {
         case UITypes.SingleSelect:
         case UITypes.PhoneNumber:
         case UITypes.Email:
+        case UITypes.GeoData:
         case UITypes.URL:
           return formulaTypes.STRING
 

@@ -15,6 +15,7 @@ import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
 import RatingIcon from '~icons/mdi/star'
+import PinIcon from '~icons/mdi/pin'
 import GenericIcon from '~icons/mdi/square-rounded'
 import NumericIcon from '~icons/mdi/numeric'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
@@ -52,6 +53,8 @@ const icon = computed(() => {
     return EmailIcon
   } else if (additionalColMeta.isYear.value) {
     return CalendarIcon
+  } else if (additionalColMeta.isGeoData.value) {
+    return PinIcon
   } else if (additionalColMeta.isTime.value) {
     return ClockIcon
   } else if (additionalColMeta.isRating.value) {

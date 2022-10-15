@@ -113,6 +113,7 @@
     "LongText": "Long Text",
     "Attachment": "Attachment",
     "Checkbox": "Checkbox",
+    "GeoData": "GeoData",
     "MultiSelect": "Multi Select",
     "SingleSelect": "Single Select",
     "Collaborator": "Collaborator",

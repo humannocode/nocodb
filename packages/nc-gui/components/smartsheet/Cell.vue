@@ -79,6 +79,7 @@ const isAutoSaved = $computed(() => {
     UITypes.AutoNumber,
     UITypes.SpecificDBType,
     UITypes.Geometry,
+    UITypes.GeoData,
   ].includes(column?.value?.uidt as UITypes)
 })
 
@@ -107,6 +108,7 @@ const {
   isURL,
   isEmail,
   isJSON,
+  isGeoData,
   isDate,
   isYear,
   isDateTime,
@@ -170,6 +172,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
+    <CellGeoData v-else-if="isGeoData" v-model="vModel" />
     <CellText v-else v-model="vModel" />
     <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
