@@ -21,7 +21,7 @@ enum XcType {
   Date = 'Date',
   Year = 'Year',
   Time = 'Time',
-  PhoneNumber = 'PhoneNumberXX',
+  PhoneNumber = 'PhoneNumber',
   GeoData = 'GeoData',
   Email = 'Email',
   URL = 'URL',

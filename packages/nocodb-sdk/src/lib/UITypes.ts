@@ -15,7 +15,7 @@ enum UITypes {
   Date = 'Date',
   Year = 'Year',
   Time = 'Time',
-  PhoneNumber = 'PhoneNumberXX',
+  PhoneNumber = 'PhoneNumber',
   Email = 'Email',
   URL = 'URL',
   Number = 'Number',

@@ -2,6 +2,7 @@ import autoBind from 'auto-bind';
 import _ from 'lodash';
 
 import Model from '../../../../models/Model';
+import SelectOption from '../../../../models/SelectOption';
 import { XKnex } from '../../index';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import RollupColumn from '../../../../models/RollupColumn';
@@ -21,6 +22,7 @@ import View from '../../../../models/View';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isVirtualCol,
   RelationTypes,
   SortType,
   UITypes,
@@ -367,7 +369,7 @@ class BaseModelSqlv2 {
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
     try {
-      const { where, ...rest } = this._getListArgs(args as any);
+      const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
@@ -391,6 +393,7 @@ class BaseModelSqlv2 {
 
       const qb = this.dbDriver(childTable.table_name);
       await childModel.selectObject({ qb });
+      await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
@@ -407,7 +410,7 @@ class BaseModelSqlv2 {
                     .where(_wherePk(parentTable.primaryKeys, p))
                 );
               // todo: sanitize
-              query.limit(+rest?.limit || 20);
+              query.limit(+rest?.limit || 25);
               query.offset(+rest?.offset || 0);
 
               return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -436,6 +439,26 @@ class BaseModelSqlv2 {
       console.log(e);
       throw e;
     }
+  }
+
+  private async applySortAndFilter({
+    table,
+    where,
+    qb,
+    sort,
+  }: {
+    table: Model;
+    where: string;
+    qb;
+    sort: string;
+  }) {
+    const childAliasColMap = await table.getAliasColObjMap();
+
+    const filter = extractFilterFromXwhere(where, childAliasColMap);
+    await conditionV2(filter, qb, this.dbDriver);
+    if (!sort) return;
+    const sortObj = extractSortsObject(sort, childAliasColMap);
+    if (sortObj) await sortV2(sortObj, qb, this.dbDriver);
   }
 
   async multipleHmListCount({ colId, ids }) {
@@ -481,7 +504,7 @@ class BaseModelSqlv2 {
 
   async hmList({ colId, id }, args: { limit?; offset? } = {}) {
     try {
-      const { where, ...rest } = this._getListArgs(args as any);
+      const { where, sort, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
       const relColumn = (await this.model.getColumns()).find(
@@ -503,6 +526,7 @@ class BaseModelSqlv2 {
       await parentTable.getColumns();
 
       const qb = this.dbDriver(childTable.table_name);
+      await this.applySortAndFilter({ table: childTable, where, qb, sort });
 
       qb.whereIn(
         chilCol.column_name,
@@ -512,7 +536,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, id))
       );
       // todo: sanitize
-      qb.limit(+rest?.limit || 20);
+      qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
       await childModel.selectObject({ qb });
@@ -574,7 +598,7 @@ class BaseModelSqlv2 {
     { colId, parentIds },
     args: { limit?; offset? } = {}
   ) {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -601,6 +625,9 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
     await childModel.selectObject({ qb });
+
+    await this.applySortAndFilter({ table: childTable, where, qb, sort });
+
     const finalQb = this.dbDriver.unionAll(
       parentIds.map((id) => {
         const query = qb
@@ -615,7 +642,7 @@ class BaseModelSqlv2 {
           .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
 
         // todo: sanitize
-        query.limit(+rest?.limit || 20);
+        query.limit(+rest?.limit || 25);
         query.offset(+rest?.offset || 0);
 
         return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -644,7 +671,7 @@ class BaseModelSqlv2 {
   }
 
   public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -679,8 +706,11 @@ class BaseModelSqlv2 {
       );
 
     await childModel.selectObject({ qb });
+
+    await this.applySortAndFilter({ table: childTable, where, qb, sort });
+
     // todo: sanitize
-    qb.limit(+rest?.limit || 20);
+    qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
     const children = await this.extractRawQueryAndExec(qb);
@@ -878,6 +908,14 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
+    // sort by primary key if not autogenerated string
+    // if autogenerated string sort by created_at column if present
+    if (childTable.primaryKey && childTable.primaryKey.ai) {
+      qb.orderBy(childTable.primaryKey.column_name);
+    } else if (childTable.columns.find((c) => c.column_name === 'created_at')) {
+      qb.orderBy('created_at');
+    }
+
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
@@ -977,6 +1015,14 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await childTable.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
+
+    // sort by primary key if not autogenerated string
+    // if autogenerated string sort by created_at column if present
+    if (childTable.primaryKey && childTable.primaryKey.ai) {
+      qb.orderBy(childTable.primaryKey.column_name);
+    } else if (childTable.columns.find((c) => c.column_name === 'created_at')) {
+      qb.orderBy('created_at');
+    }
 
     applyPaginate(qb, rest);
 
@@ -1078,6 +1124,16 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await parentTable.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
+
+    // sort by primary key if not autogenerated string
+    // if autogenerated string sort by created_at column if present
+    if (parentTable.primaryKey && parentTable.primaryKey.ai) {
+      qb.orderBy(parentTable.primaryKey.column_name);
+    } else if (
+      parentTable.columns.find((c) => c.column_name === 'created_at')
+    ) {
+      qb.orderBy('created_at');
+    }
 
     applyPaginate(qb, rest);
 
@@ -1276,7 +1332,7 @@ class BaseModelSqlv2 {
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
-    obj.sort = args.sort || args.s || this.model.primaryKey?.[0]?.tn;
+    obj.sort = args.sort || args.s;
     return obj;
   }
 
@@ -1290,9 +1346,15 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async selectObject({ qb }: { qb: QueryBuilder }): Promise<void> {
+  public async selectObject({
+    qb,
+    columns: _columns,
+  }: {
+    qb: QueryBuilder;
+    columns?: Column[];
+  }): Promise<void> {
     const res = {};
-    const columns = await this.model.getColumns();
+    const columns = _columns ?? (await this.model.getColumns());
     for (const column of columns) {
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
@@ -1946,7 +2008,7 @@ class BaseModelSqlv2 {
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
     const id = this._extractPksValues(data);
-    Audit.insert({
+    await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
@@ -2322,6 +2384,243 @@ class BaseModelSqlv2 {
     });
   }
 
+  public async groupedList(
+    args: {
+      groupColumnId: string;
+      ignoreFilterSort?: boolean;
+      options?: (string | number | null | boolean)[];
+    } & Partial<XcFilter>
+  ): Promise<
+    {
+      key: string;
+      value: Record<string, unknown>[];
+    }[]
+  > {
+    try {
+      const { where, ...rest } = this._getListArgs(args as any);
+      const column = await this.model
+        .getColumns()
+        .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+
+      if (!column) NcError.notFound('Column not found');
+      if (isVirtualCol(column))
+        NcError.notImplemented('Grouping for virtual columns not implemented');
+
+      // extract distinct group column values
+      let groupingValues: Set<any>;
+      if (args.options?.length) {
+        groupingValues = new Set(args.options);
+      } else if (column.uidt === UITypes.SingleSelect) {
+        const colOptions = await column.getColOptions<{
+          options: SelectOption[];
+        }>();
+        groupingValues = new Set(
+          (colOptions?.options ?? []).map((opt) => opt.title)
+        );
+        groupingValues.add(null);
+      } else {
+        groupingValues = new Set(
+          (
+            await this.dbDriver(this.model.table_name)
+              .select(column.column_name)
+              .distinct()
+          ).map((row) => row[column.column_name])
+        );
+        groupingValues.add(null);
+      }
+
+      const qb = this.dbDriver(this.model.table_name);
+      qb.limit(+rest?.limit || 25);
+      qb.offset(+rest?.offset || 0);
+
+      await this.selectObject({ qb });
+
+      // todo: refactor and move to a method (applyFilterAndSort)
+      const aliasColObjMap = await this.model.getAliasColObjMap();
+      let sorts = extractSortsObject(args?.sort, aliasColObjMap);
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
+      // todo: replace with view id
+      if (!args.ignoreFilterSort && this.viewId) {
+        await conditionV2(
+          [
+            new Filter({
+              children:
+                (await Filter.rootFilterList({ viewId: this.viewId })) || [],
+              is_group: true,
+            }),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: filterObj,
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          qb,
+          this.dbDriver
+        );
+
+        if (!sorts)
+          sorts = args.sortArr?.length
+            ? args.sortArr
+            : await Sort.list({ viewId: this.viewId });
+
+        if (sorts?.['length']) await sortV2(sorts, qb, this.dbDriver);
+      } else {
+        await conditionV2(
+          [
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: filterObj,
+              is_group: true,
+              logical_op: 'and',
+            }),
+          ],
+          qb,
+          this.dbDriver
+        );
+
+        if (!sorts) sorts = args.sortArr;
+
+        if (sorts?.['length']) await sortV2(sorts, qb, this.dbDriver);
+      }
+
+      // sort by primary key if not autogenerated string
+      // if autogenerated string sort by created_at column if present
+      if (this.model.primaryKey && this.model.primaryKey.ai) {
+        qb.orderBy(this.model.primaryKey.column_name);
+      } else if (
+        this.model.columns.find((c) => c.column_name === 'created_at')
+      ) {
+        qb.orderBy('created_at');
+      }
+
+      const groupedQb = this.dbDriver.from(
+        this.dbDriver
+          .unionAll(
+            [...groupingValues].map((r) => {
+              const query = qb.clone();
+              if (r === null) {
+                query.whereNull(column.column_name);
+              } else {
+                query.where(column.column_name, r);
+              }
+
+              return this.isSqlite ? this.dbDriver.select().from(query) : query;
+            }),
+            !this.isSqlite
+          )
+          .as('__nc_grouped_list')
+      );
+
+      const proto = await this.getProto();
+
+      const result = (await groupedQb)?.map((d) => {
+        d.__proto__ = proto;
+        return d;
+      });
+
+      const groupedResult = result.reduce<Map<string | number | null, any[]>>(
+        (aggObj, row) => {
+          if (!aggObj.has(row[column.title])) {
+            aggObj.set(row[column.title], []);
+          }
+
+          aggObj.get(row[column.title]).push(row);
+
+          return aggObj;
+        },
+        new Map()
+      );
+
+      const r = [...groupingValues].map((key) => ({
+        key,
+        value: groupedResult.get(key) ?? [],
+      }));
+
+      return r;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  }
+
+  public async groupedListCount(
+    args: { groupColumnId: string; ignoreFilterSort?: boolean } & XcFilter
+  ) {
+    const column = await this.model
+      .getColumns()
+      .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+
+    if (!column) NcError.notFound('Column not found');
+    if (isVirtualCol(column))
+      NcError.notImplemented('Grouping for virtual columns not implemented');
+
+    const qb = this.dbDriver(this.model.table_name)
+      .count('*', { as: 'count' })
+      .groupBy(column.column_name);
+
+    // todo: refactor and move to a common method (applyFilterAndSort)
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    // todo: replace with view id
+
+    if (!args.ignoreFilterSort && this.viewId) {
+      await conditionV2(
+        [
+          new Filter({
+            children:
+              (await Filter.rootFilterList({ viewId: this.viewId })) || [],
+            is_group: true,
+          }),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ],
+        qb,
+        this.dbDriver
+      );
+    } else {
+      await conditionV2(
+        [
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ],
+        qb,
+        this.dbDriver
+      );
+    }
+
+    await this.selectObject({
+      qb,
+      columns: [new Column({ ...column, title: 'key' })],
+    });
+
+    return await qb;
+  }
+
   private async extractRawQueryAndExec(qb: QueryBuilder) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql) {
@@ -2446,7 +2745,7 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
 function applyPaginate(
   query,
   {
-    limit = 20,
+    limit = 25,
     offset = 0,
     ignoreLimit = false,
   }: XcFilter & { ignoreLimit?: boolean }
