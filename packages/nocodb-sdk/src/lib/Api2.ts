@@ -568,6 +568,7 @@ export type ColumnReqType =
         | 'LastModifiedTime'
         | 'AutoNumber'
         | 'Geometry'
+        | 'GeoData'
         | 'JSON'
         | 'SpecificDBType'
         | 'Barcode'
