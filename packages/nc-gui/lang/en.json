@@ -93,6 +93,7 @@
       "gallery": "Gallery",
       "form": "Form",
       "kanban": "Kanban",
+      "map": "Map",
       "calendar": "Calendar"
     },
     "user": "User",
@@ -563,6 +564,7 @@
         "gallery": "Add Gallery View",
         "form": "Add Form View",
         "kanban": "Add Kanban View",
+        "map": "Add Map View",
         "calendar": "Add Calendar View"
       },
       "tablesMetadataInSync": "Tables metadata is in Sync",
