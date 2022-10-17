@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import 'leaflet/dist/leaflet.css'
 import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -26,10 +27,6 @@ import {
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
-
-interface Attachment {
-  url: string
-}
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -60,36 +57,41 @@ provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
-const fields = inject(FieldsInj, ref([]))
-
 const route = useRoute()
 
 const router = useRouter()
 
-const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
+const markerRef = ref()
+const myMapRef = ref()
+const latitude = ref()
+const longitude = ref()
+const markersRef = ref()
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta.value?.columnsById
-      ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
-)
+function addMarker() {
+  // marker([latitude.value, longitude.value]).addTo(myMap);
+  // console.log("myMapRef", myMapRef);
+  const markerNew = markerRef.value([parseFloat(latitude.value), parseFloat(longitude.value)])
+  console.log(markersRef.value)
+  markersRef.value.addLayer(markerNew)
 
-const isRowEmpty = (record: any, col: any) => {
-  const val = record.row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
+  myMapRef.value.addLayer(markersRef.value)
 }
 
-const attachments = (record: any): Attachment[] => {
-  try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
-  } catch (e) {
-    return []
-  }
-}
+onMounted(async () => {
+  const { map, tileLayer, marker } = await import('leaflet')
+  await import('leaflet.markercluster')
+
+  const myMap = map('map').setView([51.505, -0.09], 13)
+  markerRef.value = marker
+  myMapRef.value = myMap
+  console.log('markerClusterGroup', L.markerClusterGroup)
+  markersRef.value = L.markerClusterGroup()
+
+  tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(myMap)
+})
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
@@ -105,13 +107,6 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
-  }
-}
-
-const expandFormClick = async (e: MouseEvent, row: RowType) => {
-  const target = e.target as HTMLElement
-  if (target && !target.closest('.gallery-carousel')) {
-    expandForm(row)
   }
 }
 
@@ -168,84 +163,17 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
-    <div class="nc-gallery-container grid gap-2 my-4 px-3">
-      <div v-for="record in data" :key="`record-${record.row.id}`">
-        <LazySmartsheetRow :row="record">
-          <a-card
-            hoverable
-            class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-            @click="expandFormClick($event, record)"
-          >
-            <template v-if="galleryData?.fk_cover_image_col_id" #cover>
-              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
-                <template #customPaging>
-                  <a>
-                    <div class="pt-[12px]">
-                      <div></div>
-                    </div>
-                  </a>
-                </template>
-
-                <template #prevArrow>
-                  <div style="z-index: 1"></div>
-                </template>
-
-                <template #nextArrow>
-                  <div style="z-index: 1"></div>
-                </template>
-
-                <LazyNuxtImg
-                  v-for="(attachment, index) in attachments(record)"
-                  :key="`carousel-${record.row.id}-${index}`"
-                  quality="90"
-                  placeholder
-                  class="h-52 object-cover"
-                  :src="attachment.url"
-                />
-              </a-carousel>
-
-              <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
-            </template>
-
-            <div
-              v-for="col in fieldsWithoutCover"
-              :key="`record-${record.row.id}-${col.id}`"
-              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-            >
-              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                <div class="w-full text-gray-600">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-
-                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                </div>
-              </div>
-
-              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-
-                <template v-else>
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(col)"
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :row="record"
-                  />
-
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
-                </template>
-              </div>
-            </div>
-          </a-card>
-        </LazySmartsheetRow>
-      </div>
+  <div class="flex flex-col h-full w-full nounderline">
+    <div class="flex m-4 gap-4">
+      <label :for="latitude">latitude</label>
+      <input v-model="latitude" />
+      <label :for="longitude">longitude</label>
+      <input v-model="longitude" />
+      <button class="bg-blue" @click="addMarker">Submit</button>
     </div>
+    <client-only placeholder="Loading...">
+      <div id="map"></div>
+    </client-only>
 
     <div class="flex-1" />
 
@@ -324,5 +252,11 @@ watch(view, async (nextView) => {
   height: 100%;
   top: 12px;
   width: 50%;
+}
+#map {
+  height: 100vh;
+}
+.nounderline {
+  text-decoration: none;
 }
 </style>

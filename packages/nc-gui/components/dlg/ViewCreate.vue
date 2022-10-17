@@ -2,7 +2,7 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, TableType, ViewType, MapType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import {
   computed,
@@ -31,7 +31,7 @@ interface Props {
 
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
-  (event: 'created', value: GridType | KanbanType | GalleryType | FormType): void
+  (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType): void
 }
 
 interface Form {
@@ -72,7 +72,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType | MapType).alias || v1.title) !== v)
           ? resolve(true)
           : reject(new Error(`View name should be unique`))
       }),
@@ -151,7 +151,7 @@ async function onSubmit() {
     if (!_meta || !_meta.id) return
 
     try {
-      let data: GridType | KanbanType | GalleryType | FormType | null = null
+      let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
 
       switch (form.type) {
         case ViewTypes.GRID:
@@ -165,6 +165,9 @@ async function onSubmit() {
           break
         case ViewTypes.KANBAN:
           data = await api.dbView.kanbanCreate(_meta.id, form)
+          break
+        case ViewTypes.MAP:
+          data = await api.dbView.mapCreate(_meta.id, form)
       }
 
       if (data) {
