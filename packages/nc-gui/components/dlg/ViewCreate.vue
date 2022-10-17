@@ -92,6 +92,7 @@ const typeAlias = computed(
       [ViewTypes.GALLERY]: 'gallery',
       [ViewTypes.FORM]: 'form',
       [ViewTypes.KANBAN]: 'kanban',
+      [ViewTypes.MAP]: 'map',
     }[props.type]),
 )
 

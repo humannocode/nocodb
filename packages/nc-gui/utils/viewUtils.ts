@@ -7,6 +7,7 @@ import MdiCalendarIcon from '~icons/mdi/calendar'
 import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
+import MdiMapIcon from '~icons/mdi/map-outline'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
   [ViewTypes.GRID]: { icon: MdiGridIcon, color: '#8f96f2' },
@@ -15,6 +16,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
   [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
   view: { icon: MdiEyeIcon, color: 'blue' },
+  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'orange' },
 }
 
 export const viewTypeAlias = {
@@ -22,4 +24,5 @@ export const viewTypeAlias = {
   [ViewTypes.FORM]: 'form',
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
 }

@@ -14,7 +14,7 @@ import CalendarMonth from '~icons/mdi/calendar-month'
 import Calendar from '~icons/mdi/calendar'
 import Clock from '~icons/mdi/clock'
 import FilePhone from '~icons/mdi/file-phone'
-import Pin from '~icons/mdi/pin'
+import Marker from '~icons/mdi/map-marker'
 import Email from '~icons/mdi/email'
 import Web from '~icons/mdi/web'
 import Numeric from '~icons/mdi/numeric'
@@ -141,7 +141,7 @@ const uiTypes = [
   },
   {
     name: UITypes.GeoData,
-    icon: Pin,
+    icon: Marker,
   },
   {
     name: UITypes.JSON,

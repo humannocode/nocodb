@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -82,10 +82,11 @@ const isAutoSaved = $computed(() => {
     UITypes.SpecificDBType,
     UITypes.Geometry,
     UITypes.GeoData,
+    UITypes.Duration,
   ].includes(column?.value?.uidt as UITypes)
 })
 
-const isManualSaved = $computed(() => [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes))
+const isManualSaved = $computed(() => [UITypes.Currency].includes(column?.value?.uidt as UITypes))
 
 const vModel = computed({
   get: () => props.modelValue,

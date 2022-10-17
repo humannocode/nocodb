@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getMdiIcon, useVModel } from '#imports'
+import { useVModel } from '#imports'
 
 const props = defineProps<{
   value: any

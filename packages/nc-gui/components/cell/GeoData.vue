@@ -31,11 +31,20 @@ function onKeyDown(evt: KeyboardEvent) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
+    class="outline-none px-2 border-none w-full h-full text-sm"
+    type="number"
+    step="0.1"
+    @blur="editEnabled = false"
+  />
+  <!-- <input
+    v-if="editEnabled"
+    :ref="focus"
+    v-model="vModel"
     class="outline-none p-0 border-none w-full h-full prose-sm"
     type="number"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
-  />
+  /> -->
   <span v-else class="prose-sm">{{ vModel }}</span>
 </template>
 

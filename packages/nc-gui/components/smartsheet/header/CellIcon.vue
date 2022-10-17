@@ -15,7 +15,7 @@ import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
 import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
 import RatingIcon from '~icons/mdi/star'
-import PinIcon from '~icons/mdi/pin'
+import MarkerIcon from '~icons/mdi/map-marker'
 import GenericIcon from '~icons/mdi/square-rounded'
 import NumericIcon from '~icons/mdi/numeric'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
@@ -56,7 +56,7 @@ const icon = computed(() => {
   } else if (additionalColMeta.isYear.value) {
     return CalendarIcon
   } else if (additionalColMeta.isGeoData.value) {
-    return PinIcon
+    return MarkerIcon
   } else if (additionalColMeta.isTime.value) {
     return ClockIcon
   } else if (additionalColMeta.isRating.value) {
