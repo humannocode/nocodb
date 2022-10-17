@@ -136,7 +136,7 @@ export interface ViewType {
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
-  view?: FormType | GridType | GalleryType | KanbanType;
+  view?: FormType | GridType | GalleryType | KanbanType | MapType;
 }
 
 export interface TableInfoType {
@@ -385,6 +385,25 @@ export interface KanbanType {
   fk_grp_col_id?: string | null;
   fk_cover_image_col_id?: string;
   meta?: string | object;
+}
+
+export interface MapType {
+  id?: string;
+  title?: string;
+  alias?: string;
+  columns?: MapColumnType[];
+  fk_model_id?: string;
+  fk_grp_col_id?: string | null;
+  fk_cover_image_col_id?: string;
+  meta?: string | object;
+}
+
+export interface MapColumnType {
+  id?: string;
+  label?: string;
+  help?: string;
+  fk_column_id?: string;
+  fk_map_id?: string;
 }
 
 export interface FormType {
@@ -1954,6 +1973,65 @@ export class Api<
     kanbanRead: (kanbanId: string, params: RequestParams = {}) =>
       this.request<KanbanType, any>({
         path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/maps
+     * @response `200` `object` OK
+     */
+    mapCreate: (
+      tableId: string,
+      data: MapType,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/maps`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapUpdate
+     * @request PATCH:/api/v1/db/meta/maps/{mapId}
+     * @response `200` `void` OK
+     */
+    mapUpdate: (
+      mapId: string,
+      data: MapType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/maps/${mapId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name MapRead
+     * @request GET:/api/v1/db/meta/maps/{mapId}
+     * @response `200` `MapType` OK
+     */
+    mapRead: (mapId: string, params: RequestParams = {}) =>
+      this.request<MapType, any>({
+        path: `/api/v1/db/meta/maps/${mapId}`,
         method: 'GET',
         format: 'json',
         ...params,

@@ -16,7 +16,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
   [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
   view: { icon: MdiEyeIcon, color: 'blue' },
-  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'orange' },
+  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'red' },
 }
 
 export const viewTypeAlias = {

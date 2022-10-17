@@ -368,6 +368,24 @@ export interface KanbanType {
   fk_model_id?: string;
 }
 
+export interface MapColumnType {
+  id?: string;
+  label?: string;
+  help?: string;
+  fk_column_id?: string;
+  fk_map_id?: string;
+}
+
+export interface MapType {
+  id?: string;
+  title?: string;
+  alias?: string;
+  public?: boolean;
+  password?: string;
+  columns?: MapColumnType[];
+  fk_model_id?: string;
+}
+
 export interface FormType {
   id?: string;
   title?: string;
@@ -426,7 +444,7 @@ export interface SharedViewListType {
 }
 
 export interface ViewListType {
-  list?: GridType | FormType | KanbanType | GalleryType;
+  list?: GridType | FormType | KanbanType | GalleryType | MapType;
   pageInfo?: PaginatedType;
 }
 
