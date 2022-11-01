@@ -363,6 +363,11 @@ export function useViewData(
     }
   }
 
+  const selectedRows = computed(() => {
+    const selectedRows = formattedData.value.filter((row) => row.rowMeta.selected)
+    return selectedRows
+  })
+
   async function deleteSelectedRows() {
     let row = formattedData.value.length
     while (row--) {
@@ -453,6 +458,7 @@ export function useViewData(
     changePage,
     addEmptyRow,
     deleteRow,
+    selectedRows,
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,

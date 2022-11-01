@@ -168,6 +168,7 @@ async function(req, res){
         functions: [
           `
 async function(req, res){
+    console.log('jo bulk delete')
     const data = await req.model.delb(req.body)
     res.json(data);
 }

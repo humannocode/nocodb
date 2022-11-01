@@ -152,6 +152,7 @@ export class RestCtrl extends RestBaseCtrl {
   }
 
   public async bulkDelete(req: Request | any, res: Response): Promise<void> {
+    console.log('foo - bulkDelete')
     const data = await req.model.delb(req.body);
     res.json(data);
   }

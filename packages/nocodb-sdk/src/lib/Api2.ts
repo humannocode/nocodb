@@ -809,7 +809,7 @@ export class HttpClient<SecurityDataType = unknown> {
     baseUrl,
     cancelToken,
     ...params
-  }: FullRequestParams & {wrapped?:any}): Promise<T> => {
+  }: FullRequestParams & { wrapped?: any }): Promise<T> => {
     const secureParams =
       ((typeof secure === 'boolean' ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&
@@ -2543,7 +2543,8 @@ export class Api<
       tableName: string,
       data: any,
       params: RequestParams = {}
-    ) =>
+    ) => {
+      console.log('foo - swagger generated bulkDelete call')
       this.request<any, any>({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}`,
         method: 'DELETE',
@@ -2551,7 +2552,8 @@ export class Api<
         type: ContentType.Json,
         format: 'json',
         ...params,
-      }),
+      });
+    },
 
     /**
      * No description

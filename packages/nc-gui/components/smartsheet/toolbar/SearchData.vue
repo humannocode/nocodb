@@ -21,6 +21,23 @@ const columns = computed(() =>
 function onPressEnter() {
   reloadData.trigger()
 }
+
+const showBulkOperationModal = ref(false)
+
+const onShowBulkOperationModal = () => (showBulkOperationModal.value = true)
+
+const view = inject(ActiveViewInj, ref())
+const meta2 = inject(MetaInj, ref())
+const { selectedRows } = useViewData(meta2, view)
+
+const handleBulkOperationModalOkClick = () => {
+  // reloadData.trigger()
+  showBulkOperationModal.value = false
+}
+
+// const FOO = computed(() => {
+//   return selectedRows
+// })
 </script>
 
 <template>
@@ -56,5 +73,14 @@ function onPressEnter() {
     >
       <template #addonBefore> </template>
     </a-input>
+    <a-button @click="onShowBulkOperationModal">Bulk Operation</a-button>
+    <a-modal
+      v-model:visible="showBulkOperationModal"
+      title="Bulk Operation"
+      footer
+      @ok="handleBulkOperationModalOkClick"
+      :bodyStyle="{ padding: '0px' }"
+    >
+    </a-modal>
   </div>
 </template>
