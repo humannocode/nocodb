@@ -3,11 +3,12 @@ import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmarts
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { search, meta, xWhere } = useSmartsheetStoreOrThrow()
+// const { search, meta, xWhere } = useSmartsheetStoreOrThrow()
+const { search, meta } = useSmartsheetStoreOrThrow()
 
-const view = inject(ActiveViewInj, ref())
-const meta2 = inject(MetaInj, ref())
-const { selectedRows } = useProvideViewData(meta2, view, xWhere)
+// const view = inject(ActiveViewInj, ref())
+// const meta2 = inject(MetaInj, ref())
+const { selectedRows } = useViewDataOrThrow()
 
 const isDropdownOpen = ref(false)
 

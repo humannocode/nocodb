@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { computed, inject, ref } from '#imports'
 
-const view = inject(ActiveViewInj, ref())
+// const view = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
 console.log('meta', meta)
 watch(meta, () => {
   console.log('meta', meta)
 })
-const { selectedRows } = useProvideViewData(meta, view)
+const { selectedRows } = useViewDataOrThrow()
 
 const columns = computed(() =>
   meta.value?.columns?.map((c) => ({

@@ -33,11 +33,11 @@ import {
   useI18n,
   useMetas,
   useMultiSelect,
-  useProvideViewData,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  useViewDataOrThrow,
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
@@ -107,7 +107,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   selectedRows,
-} = useProvideViewData(meta, view, xWhere)
+} = useViewDataOrThrow()
 
 const { getMeta } = useMetas()
 
