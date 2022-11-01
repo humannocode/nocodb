@@ -21,7 +21,7 @@ import {
   onMounted,
   provide,
   ref,
-  useViewData,
+  useProvideViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
 
@@ -47,7 +47,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
-} = useViewData(meta, view)
+} = useProvideViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))

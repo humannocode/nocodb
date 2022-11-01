@@ -20,9 +20,9 @@ import {
   useGlobal,
   useI18n,
   useNuxtApp,
+  useProvideViewData,
   useUIPermission,
   useViewColumns,
-  useViewData,
   watch,
 } from '#imports'
 import type { Permission } from '~/lib'
@@ -51,7 +51,7 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
+const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useProvideViewData(meta, view)
 
 const reloadEventHook = createEventHook<boolean | void>()
 

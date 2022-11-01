@@ -31,7 +31,7 @@ const formatData = (list: Row[]) =>
     rowMeta: {},
   }))
 
-export function useViewData(
+function FOO(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
@@ -475,4 +475,16 @@ export function useViewData(
     removeLastEmptyRow,
     removeRowIfNew,
   }
+}
+
+const [useProvideViewData, useViewData] = useInjectionState(FOO, 'FOO')
+
+export { useProvideViewData }
+
+export function useViewDataOrThrow() {
+  const viewData = useViewData()
+
+  if (viewData == null) throw new Error('Please call `useProvideViewData` on the appropriate parent component')
+
+  return viewData
 }

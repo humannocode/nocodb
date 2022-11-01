@@ -3,7 +3,11 @@ import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmarts
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { search, meta } = useSmartsheetStoreOrThrow()
+const { search, meta, xWhere } = useSmartsheetStoreOrThrow()
+
+const view = inject(ActiveViewInj, ref())
+const meta2 = inject(MetaInj, ref())
+const { selectedRows } = useProvideViewData(meta2, view, xWhere)
 
 const isDropdownOpen = ref(false)
 
@@ -26,10 +30,6 @@ const showBulkOperationModal = ref(false)
 
 const onShowBulkOperationModal = () => (showBulkOperationModal.value = true)
 
-const view = inject(ActiveViewInj, ref())
-const meta2 = inject(MetaInj, ref())
-const { selectedRows } = useViewData(meta2, view)
-
 const handleBulkOperationModalOkClick = () => {
   // reloadData.trigger()
   showBulkOperationModal.value = false
@@ -42,6 +42,7 @@ const handleBulkOperationModalOkClick = () => {
 
 <template>
   <div class="flex flex-row border-1 rounded-sm">
+    FOO: {{ JSON.stringify(selectedRows) }}
     <div
       ref="searchDropdown"
       class="flex items-center relative bg-gray-50 px-2 cursor-pointer border-r-1"

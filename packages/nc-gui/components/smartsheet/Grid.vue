@@ -33,11 +33,11 @@ import {
   useI18n,
   useMetas,
   useMultiSelect,
+  useProvideViewData,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
-  useViewData,
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
@@ -107,7 +107,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   selectedRows,
-} = useViewData(meta, view, xWhere)
+} = useProvideViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
 
@@ -463,6 +463,7 @@ watch(
 <template>
   <div class="relative flex flex-col h-full min-h-0 w-full">
     FOO selectedRows: {{ JSON.stringify(selectedRows) }} <br />
+    BAR FOO data: {{ JSON.stringify(data) }} BAR
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />

@@ -10,9 +10,9 @@ import {
   useGlobal,
   useI18n,
   useProject,
+  useProvideViewData,
   useSmartsheetStoreOrThrow,
   useVModel,
-  useViewData,
   watch,
 } from '#imports'
 
@@ -34,7 +34,8 @@ const view = $(inject(ActiveViewInj, ref()))
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 
-const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
+// const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
+const { queryParams } = $(useProvideViewData($$(meta), $$(view), xWhere))
 
 const { copy } = useCopy()
 
