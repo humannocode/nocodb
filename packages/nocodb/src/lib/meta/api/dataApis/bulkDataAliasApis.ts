@@ -21,6 +21,7 @@ async function bulkDataInsert(req: Request, res: Response) {
 }
 
 async function bulkDataUpdate(req: Request, res: Response) {
+  // BOOKMARK
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
 

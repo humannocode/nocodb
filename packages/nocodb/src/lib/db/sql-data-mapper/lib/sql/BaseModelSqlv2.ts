@@ -1780,6 +1780,8 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdate(datas: any[], { cookie }: { cookie?: any } = {}) {
+    console.log('BULK UPDATE');
+    console.log('datas', datas);
     let transaction;
     try {
       const updateDatas = await Promise.all(

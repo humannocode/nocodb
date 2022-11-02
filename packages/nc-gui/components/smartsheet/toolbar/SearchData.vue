@@ -3,12 +3,7 @@ import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmarts
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-// const { search, meta, xWhere } = useSmartsheetStoreOrThrow()
 const { search, meta } = useSmartsheetStoreOrThrow()
-
-// const view = inject(ActiveViewInj, ref())
-// const meta2 = inject(MetaInj, ref())
-const { selectedRows } = useViewDataOrThrow()
 
 const isDropdownOpen = ref(false)
 
@@ -26,24 +21,10 @@ const columns = computed(() =>
 function onPressEnter() {
   reloadData.trigger()
 }
-
-const showBulkOperationModal = ref(false)
-
-const onShowBulkOperationModal = () => (showBulkOperationModal.value = true)
-
-const handleBulkOperationModalOkClick = () => {
-  // reloadData.trigger()
-  showBulkOperationModal.value = false
-}
-
-// const FOO = computed(() => {
-//   return selectedRows
-// })
 </script>
 
 <template>
   <div class="flex flex-row border-1 rounded-sm">
-    FOO: {{ JSON.stringify(selectedRows) }}
     <div
       ref="searchDropdown"
       class="flex items-center relative bg-gray-50 px-2 cursor-pointer border-r-1"
@@ -75,14 +56,5 @@ const handleBulkOperationModalOkClick = () => {
     >
       <template #addonBefore> </template>
     </a-input>
-    <a-button @click="onShowBulkOperationModal">Bulk Operation</a-button>
-    <a-modal
-      v-model:visible="showBulkOperationModal"
-      title="Bulk Operation"
-      footer
-      @ok="handleBulkOperationModalOkClick"
-      :bodyStyle="{ padding: '0px' }"
-    >
-    </a-modal>
   </div>
 </template>
