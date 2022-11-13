@@ -240,14 +240,17 @@ function FOO(
     }
   }
 
+  // inside this method use metaValue and viewMetaValue to refer meta
+  // since sometimes we need to pass old metas
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
+
     try {
-      const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
@@ -256,7 +259,8 @@ function FOO(
         viewMetaValue?.id as string,
         id,
         {
-          [property]: toUpdate.row[property],
+          // if value is undefined treat it as null
+          [property]: toUpdate.row[property] ?? null,
         },
         // todo:
         // {
@@ -297,13 +301,19 @@ function FOO(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // update changed status
+    if (row.rowMeta) row.rowMeta.changed = false
+
     // if new row and save is in progress then wait until the save is complete
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
       return await insertRow(row, ltarState, args)
     } else {
-      await updateRowProperty(row, property!, args)
+      // if the field name is missing skip update
+      if (property) {
+        await updateRowProperty(row, property, args)
+      }
     }
   }
 
