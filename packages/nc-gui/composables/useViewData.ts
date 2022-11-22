@@ -23,6 +23,7 @@ import {
   useUIPermission,
 } from '#imports'
 import type { Row } from '~/lib'
+import { number } from '@intlify/core-base'
 
 const formatData = (list: Row[]) =>
   list.map((row) => ({
@@ -105,6 +106,22 @@ export function useViewData(
       rowMeta: { new: true },
     })
 
+    return formattedData.value[addAfter]
+  }
+
+  function addEmptyMultipleRows(numberOfRows: number | null | undefined, addAfter = formattedData.value.length) {
+    if (numberOfRows == null) return
+    const newRows = Array(numberOfRows).fill({ row: {}, oldRow: {}, rowMeta: { new: true } })
+    formattedData.value.splice(
+      addAfter,
+      0,
+      {
+        row: {},
+        oldRow: {},
+        rowMeta: { new: true },
+      },
+      ...newRows,
+    )
     return formattedData.value[addAfter]
   }
 
@@ -469,6 +486,7 @@ export function useViewData(
     updateRowProperty,
     changePage,
     addEmptyRow,
+    addEmptyMultipleRows,
     deleteRow,
     deleteSelectedRows,
     updateOrSaveRow,

@@ -66,6 +66,8 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 const route = useRoute()
 const router = useRouter()
 
+const inputValue = ref(1)
+
 // todo: get from parent ( inject or use prop )
 const isView = false
 
@@ -103,6 +105,7 @@ const {
   updateOrSaveRow,
   changePage,
   addEmptyRow,
+  addEmptyMultipleRows,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
@@ -429,6 +432,7 @@ const onNavigate = (dir: NavigateDir) => {
       if (selected.row < data.value.length - 1) {
         selected.row++
       } else {
+        // addEmptyRow()
         addEmptyRow()
         selected.row++
       }
@@ -679,7 +683,17 @@ watch(
                           </span>
                           <div
                             v-else
-                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                            class="
+                              cursor-pointer
+                              flex
+                              items-center
+                              border-1
+                              active:ring
+                              rounded
+                              p-1
+                              hover:(bg-primary
+                              bg-opacity-10)
+                            "
                           >
                             <MdiArrowExpand
                               v-e="['c:row-expand']"
@@ -745,15 +759,14 @@ watch(
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
+                class="text-left flex pointer nc-grid-add-new-cell cursor-pointer"
               >
-                <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
-
+                <input v-model.number="inputValue" type="number" class="outline-none p-0 w-1/5 h-full text-sm" />
+                <div class="px-2 flex items-center text-gray-500" @click="addEmptyMultipleRows(inputValue)">
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}
                   </span>
+                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
                 </div>
               </td>
             </tr>
