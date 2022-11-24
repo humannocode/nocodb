@@ -112,17 +112,7 @@ export function useViewData(
   function addEmptyMultipleRows(numberOfRows: number | null | undefined, addAfter = formattedData.value.length) {
     if (numberOfRows == null) return
     const newRows = Array(numberOfRows).fill({ row: {}, oldRow: {}, rowMeta: { new: true } })
-    formattedData.value.splice(
-      addAfter,
-      0,
-      {
-        row: {},
-        oldRow: {},
-        rowMeta: { new: true },
-      },
-      ...newRows,
-    )
-    return formattedData.value[addAfter]
+    formattedData.value.splice(addAfter, 0, ...newRows)
   }
 
   function removeLastEmptyRow() {

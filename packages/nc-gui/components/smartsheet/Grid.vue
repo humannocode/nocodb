@@ -761,11 +761,9 @@ watch(
                 :colspan="visibleColLength + 1"
                 class="text-left flex pointer nc-grid-add-new-cell cursor-pointer"
               >
-                <input v-model.number="inputValue" type="number" class="outline-none p-0 w-1/5 h-full text-sm" />
+                <input v-model.number="inputValue" type="number" class="outline-none text-left p-0 w-1/8 h-full text-sm" />
                 <div class="px-2 flex items-center text-gray-500" @click="addEmptyMultipleRows(inputValue)">
-                  <span class="ml-1">
-                    {{ $t('activity.addRow') }}
-                  </span>
+                  <span class="ml-1"> more rows </span>
                   <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
                 </div>
               </td>
