@@ -8,8 +8,6 @@ import { XKnex } from '../../../index';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../../models/LookupColumn';
 import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
-import Column from '../../../../../models/Column';
-import QrCodeColumn from '../../../../../models/QrCodeColumn';
 
 // todo: switch function based on database
 
@@ -58,69 +56,9 @@ export default async function formulaQueryBuilderv2(
   const tree = jsep(_tree);
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
-  const FOOCols = await model.getColumns();
-  for (const col of FOOCols) {
+  for (const col of await model.getColumns()) {
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {
-
-
-
-
-
-
-      case 'QrCode':
-        {
-          const qrCodeColumn = await col.getColOptions<QrCodeColumn>();
-          const qrValueColumn = await Column.get({
-            colId: qrCodeColumn.fk_qr_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (qrValueColumn == null) {
-            break;
-          }
-
-          // const selectQb = knex(`${parentModel.table_name} as ${alias}`).where(
-          //   `${alias}.${parentColumn.column_name}`,
-          //   knex.raw(`??`, [
-          //     `${childModel.table_name}.${childColumn.column_name}`,
-          //   ])
-
-          switch (qrValueColumn.uidt) {
-            case UITypes.Formula:
-              {
-                const formula =
-                  await qrValueColumn.getColOptions<FormulaColumn>();
-                if (formula.error) continue;
-                const selectQb = await formulaQueryBuilderv2(
-                  formula.formula,
-                  null,
-                  this.dbDriver,
-                  this.model
-                );
-                knex.select({
-                  [col.column_name]: selectQb.builder,
-                });
-              }
-              break;
-            default: {
-              knex.select({ [col.column_name]: qrValueColumn.column_name });
-              break;
-            }
-          }
-          aliasToColumn[col.id] = builder;
-
-        }
-        break;
-
-
-
-
-
-
-
-
-
       case UITypes.Formula:
         {
           const formulOption = await col.getColOptions<FormulaColumn>();
@@ -269,11 +207,6 @@ export default async function formulaQueryBuilderv2(
             }
 
             switch (lookupColumn.uidt) {
-              case UITypes.QrCode:
-                {
-                  console.log('foo');
-                }
-                break;
               case UITypes.Rollup:
                 {
                   const builder = (
