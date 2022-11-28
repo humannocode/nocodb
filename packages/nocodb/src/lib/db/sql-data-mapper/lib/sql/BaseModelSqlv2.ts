@@ -186,11 +186,12 @@ class BaseModelSqlv2 {
     // naming comment: apparently selectObject does not directly select the db, but prepares / extends
     // the query builder
     // overall question: would it be possible (even though a slightly bigger refactoring task)
-    // to go less mutable state (e.g. selectObject changes the instances state) and instead more
+    // to go less mutable state (e.g. selectObject changes the qb state) and instead more
     // functional? So an equivalent method could be named e.g. `prepareSelectStatement`
     // and it would either
     // a) at least return the updated query builder (which would then be used for the next calls, isntead of the this.qb)
     // b) (even better, but not sure whether this is possible with Knex or has e.g. performance drawbacks) returning a new copy of the qb while leaving the original one untouched? 
+    // Or at least separate this big class/file into more concern/aspect related sub files
     await this.selectObject({ qb });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
