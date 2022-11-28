@@ -205,11 +205,15 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
+    // Maybe improve naming (even though it's good already overall), e.g.
+    // colAliasToColObjMap
+    // Also: are the concepts/names 'alias' and 'title' referring to the same thing?
     const aliasColObjMap = await this.model.getAliasColObjMap();
     let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     // todo: replace with view id
     if (!ignoreViewFilterAndSort && this.viewId) {
+      // applyCondition
       await conditionV2(
         [
           new Filter({
@@ -272,6 +276,8 @@ class BaseModelSqlv2 {
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     // I think it's not really clear to first-time code readers why the proto stuff is here
     const proto = await this.getProto();
+    const BAR = await proto.ltarFormulaDebugging1();
+    console.log('BAR', BAR);
     let data = await this.extractRawQueryAndExec(qb);
     data = this.convertAttachmentType(data);
 
@@ -279,6 +285,8 @@ class BaseModelSqlv2 {
       d.__proto__ = proto;
       return d;
     });
+    const BAR2 = await RESULT[0].ltarFormulaDebugging1();
+    console.log('BAR2', BAR2);
 
     return RESULT;
   }
@@ -1312,6 +1320,8 @@ class BaseModelSqlv2 {
               //   },
               //   configurable: true
               // });
+            // TODO: change this to use the enum 
+            // RelationTypes.MANY_TO_MANY
             } else if (colOptions.type === 'mm') {
               const listLoader = new DataLoader(async (ids: string[]) => {
                 try {
@@ -1350,6 +1360,8 @@ class BaseModelSqlv2 {
                   getCompositePk(self.model.primaryKeys, this)
                 );
               };
+            // TODO: change this to use the enum 
+            // RelationTypes.BELONGS_TO
             } else if (colOptions.type === 'bt') {
               // @ts-ignore
               const colOptions =

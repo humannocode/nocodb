@@ -36,6 +36,7 @@ function getLogicalOpMethod(filter: Filter) {
   }
 }
 
+// the name does not say anything about side effects - it only says that it's parsing some kind of condition
 const parseConditionV2 = async (
   _filter: Filter | Filter[],
   knex: XKnex,
