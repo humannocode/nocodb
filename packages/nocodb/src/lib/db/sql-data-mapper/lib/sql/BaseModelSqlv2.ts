@@ -286,6 +286,8 @@ class BaseModelSqlv2 {
       return d;
     });
     const BAR2 = await RESULT[0].ltarFormulaDebugging1();
+    const BAR3 = await RESULT[0].__columnAliases;
+    console.log('BAR3', BAR3);
     console.log('BAR2', BAR2);
 
     return RESULT;
