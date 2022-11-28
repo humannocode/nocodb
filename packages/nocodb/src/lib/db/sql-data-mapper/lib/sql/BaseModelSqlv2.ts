@@ -1239,6 +1239,12 @@ class BaseModelSqlv2 {
     });
   }
 
+  // not sure whether getProto is the best name
+  // even though its result will be assigned to the prototype of each row, 
+  // this I think is not the central thing about this method. 
+  // Instead, in my understanding the important thing is that it
+  // resolves non-trivial / relational columns.
+  
   async getProto() {
     if (this._proto) {
       return this._proto;
