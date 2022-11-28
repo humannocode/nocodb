@@ -183,6 +183,14 @@ class BaseModelSqlv2 {
     const { where, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
+    // naming comment: apparently selectObject does not directly select the db, but prepares / extends
+    // the query builder
+    // overall question: would it be possible (even though a slightly bigger refactoring task)
+    // to go less mutable state (e.g. selectObject changes the instances state) and instead more
+    // functional? So an equivalent method could be named e.g. `prepareSelectStatement`
+    // and it would either
+    // a) at least return the updated query builder (which would then be used for the next calls, isntead of the this.qb)
+    // b) (even better, but not sure whether this is possible with Knex or has e.g. performance drawbacks) returning a new copy of the qb while leaving the original one untouched? 
     await this.selectObject({ qb });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -257,10 +265,12 @@ class BaseModelSqlv2 {
     let data = await this.extractRawQueryAndExec(qb);
     data = this.convertAttachmentType(data);
 
-    return data?.map((d) => {
+    const RESULT = data?.map((d) => {
       d.__proto__ = proto;
       return d;
     });
+
+    return RESULT;
   }
 
   public async count(
@@ -1220,6 +1230,7 @@ class BaseModelSqlv2 {
     const columns = await this.model.getColumns();
     for (const column of columns) {
       switch (column.uidt) {
+        // TODO: remove this case block since it's not doing anything
         case UITypes.Rollup:
           {
             // @ts-ignore
