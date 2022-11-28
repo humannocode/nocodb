@@ -182,7 +182,9 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
 
+    // prepare query builder based on the current table
     const qb = this.dbDriver(this.tnPath);
+
     // naming comment: apparently selectObject does not directly select the db, but prepares / extends
     // the query builder
     // overall question: would it be possible (even though a slightly bigger refactoring task)
@@ -192,7 +194,13 @@ class BaseModelSqlv2 {
     // a) at least return the updated query builder (which would then be used for the next calls, isntead of the this.qb)
     // b) (even better, but not sure whether this is possible with Knex or has e.g. performance drawbacks) returning a new copy of the qb while leaving the original one untouched? 
     // Or at least separate this big class/file into more concern/aspect related sub files
+    // Or encapsulate consts/vars which are similar concept wise in this method closer together
+    // either directly via objects or via naming conventions/patterns. 
+
+    // Calling selectObject with the query builder
     await this.selectObject({ qb });
+
+    // maybe shuffle could get a more understandable name or get explanation via a comment
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -262,6 +270,7 @@ class BaseModelSqlv2 {
     }
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
+    // I think it's not really clear to first-time code readers why the proto stuff is here
     const proto = await this.getProto();
     let data = await this.extractRawQueryAndExec(qb);
     data = this.convertAttachmentType(data);
@@ -1434,6 +1443,7 @@ class BaseModelSqlv2 {
     const columns = _columns ?? (await this.model.getColumns());
     for (const column of columns) {
       switch (column.uidt) {
+        // Maybe create a comment here why LTAR and Lookups are not handled here
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
@@ -1506,6 +1516,9 @@ class BaseModelSqlv2 {
           );
           break;
         default:
+          // Why are these default cases selected at first in a dedicated object (res)
+          // and then handleded within one select? 
+          // Performance? If not: I think it's less readable like this. 
           res[sanitize(column.title || column.column_name)] = sanitize(
             `${this.model.table_name}.${column.column_name}`
           );
