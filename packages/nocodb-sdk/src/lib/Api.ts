@@ -393,6 +393,22 @@ export interface KanbanType {
   meta?: string | object;
 }
 
+export interface PdfGeneratorType {
+  id?: string;
+  title?: string;
+  alias?: string;
+  columns?: PdfGeneratorColumnType[];
+  fk_model_id?: string;
+  meta?: string | object;
+}
+
+export interface PdfGeneratorColumnType {
+  id?: string;
+  label?: string;
+  help?: string;
+  fk_col_id?: string;
+}
+
 export interface FormType {
   id?: string;
   title?: string;
@@ -2425,6 +2441,65 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name PdfGeneratorUpdate
+     * @request PATCH:/api/v1/db/meta/pdf-generator/{pdfGeneratorId}
+     * @response `200` `void` OK
+     */
+    pdfGeneratorUpdate: (
+      pdfGeneratorId: string,
+      data: PdfGeneratorType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/pdf-generator/${pdfGeneratorId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name PdfGeneratorRead
+     * @request GET:/api/v1/db/meta/pdf-generator/{pdfGeneratorId}
+     * @response `200` `PdfGeneratorType` OK
+     */
+    pdfGeneratorRead: (pdfGeneratorId: string, params: RequestParams = {}) =>
+      this.request<PdfGeneratorType, any>({
+        path: `/api/v1/db/meta/pdf-generator/${pdfGeneratorId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name PdfGeneratorCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/pdf-generators
+     * @response `200` `object` OK
+     */
+    pdfGeneratorCreate: (
+      tableId: string,
+      data: PdfGeneratorType,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/pdf-generators`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
   };
   dbViewShare = {
     /**
@@ -2786,6 +2861,29 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  pdfGenerator = {
+    /**
+     * No description
+     *
+     * @tags PDF generator
+     * @name DbViewCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/pdf-generator
+     * @response `200` `object` OK
+     */
+    dbViewCreate: (
+      tableId: string,
+      data: PdfGeneratorType,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/pdf-generator`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
