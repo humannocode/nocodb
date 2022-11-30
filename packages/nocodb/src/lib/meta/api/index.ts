@@ -55,6 +55,9 @@ import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
 import pdfGeneratorViewApis from './pdfGeneratorViewApis';
 
+import PDFDocument from 'pdfkit';
+// import fs from 'fs';
+
 const clients: { [id: string]: Socket } = {};
 
 export default function (router: Router, server) {
@@ -104,6 +107,48 @@ export default function (router: Router, server) {
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
   router.use(pdfGeneratorViewApis);
+
+  const FOOpdfExampleRouter = Router({ mergeParams: true });
+  FOOpdfExampleRouter.get(
+    '/FOO',
+    // metaApiMetrics,
+    // ncMetaAclMw(columnAdd, 'columnAdd')
+    (req, res, next) => {
+      console.log(JSON.stringify(req.hostname));
+      // let pdfDoc = new PDFDocument();
+      // pdfDoc.pipe(fs.createWriteStream('SampleDocument.pdf'));
+      // pdfDoc.text('My Sample PDF Document');
+      // pdfDoc.end();
+      // res.send('TEST');
+      // res.writeHead(200, {
+      //   'Content-Type': 'application/pdf',
+      //   'Content-Disposition': `attachment;filename=invoice.pdf`,
+      // });
+
+      const stream = res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment;filename=invoice.pdf`,
+      });
+
+      const doc = new PDFDocument({ bufferPages: true, font: 'Courier' });
+
+      doc.on('data', (chunk) => stream.write(chunk));
+      doc.on('end', () => stream.end());
+
+      doc.fontSize(20).text(`A heading`);
+
+      doc
+        .fontSize(12)
+        .text(
+          `Lorem ipsum dolor, sit amet consectetur adipisicing elit. Maiores, saepe.`
+        );
+      doc.end();
+
+      next();
+    }
+  );
+
+  router.use(FOOpdfExampleRouter);
 
   userApis(router);
 
