@@ -3,6 +3,7 @@ export enum ViewTypes {
   GALLERY = 2,
   GRID = 3,
   KANBAN = 4,
+  PDF_GENERATOR_VIEW = 5,
 }
 
 export enum RelationTypes {

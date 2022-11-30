@@ -9,6 +9,7 @@ import Model from './Model';
 import FormView from './FormView';
 import GridView from './GridView';
 import KanbanView from './KanbanView';
+import PdfGeneratorView from './PdfGeneratorView';
 import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
@@ -35,7 +36,7 @@ export default class View implements ViewType {
 
   fk_model_id: string;
   model?: Model;
-  view?: FormView | GridView | KanbanView | GalleryView;
+  view?: FormView | GridView | KanbanView | GalleryView | PdfGeneratorView;
   columns?: Array<
     FormViewColumn | GridViewColumn | GalleryViewColumn | KanbanViewColumn
   >;
@@ -70,6 +71,9 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         this.view = await GridView.get(this.id);
         break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        this.view = await PdfGeneratorView.get(this.id);
+        break;
       case ViewTypes.KANBAN:
         this.view = await KanbanView.get(this.id);
         break;
@@ -85,13 +89,18 @@ export default class View implements ViewType {
 
   async getViewWithInfo(
     ncMeta = Noco.ncMeta
-  ): Promise<FormView | GridView | KanbanView | GalleryView> {
+  ): Promise<
+    FormView | GridView | KanbanView | GalleryView | PdfGeneratorView
+  > {
     switch (this.type) {
       case ViewTypes.GRID:
         this.view = await GridView.getWithInfo(this.id, ncMeta);
         break;
       case ViewTypes.KANBAN:
         this.view = await KanbanView.get(this.id, ncMeta);
+        break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        this.view = await PdfGeneratorView.get(this.id, ncMeta);
         break;
       case ViewTypes.GALLERY:
         this.view = await GalleryView.get(this.id, ncMeta);
@@ -223,7 +232,9 @@ export default class View implements ViewType {
 
   static async insert(
     view: Partial<View> &
-      Partial<FormView | GridView | GalleryView | KanbanView> & {
+      Partial<
+        FormView | GridView | GalleryView | KanbanView | PdfGeneratorView
+      > & {
         copy_from_id?: string;
         fk_grp_col_id?: string;
         created_at?;
@@ -315,6 +326,17 @@ export default class View implements ViewType {
         (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
 
         await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta
+        );
+        break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        // set grouping field
+        await PdfGeneratorView.insert(
           {
             ...(copyFromView?.view || {}),
             ...view,
@@ -457,6 +479,15 @@ export default class View implements ViewType {
 
     for (const view of views) {
       switch (view.type) {
+        case ViewTypes.PDF_GENERATOR_VIEW:
+          await GridViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+          break;
         case ViewTypes.GRID:
           await GridViewColumn.insert(
             {
@@ -931,6 +962,9 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         table = MetaTable.KANBAN_VIEW;
         break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        table = MetaTable.PDF_GENERATOR_VIEW;
+        break;
       case ViewTypes.FORM:
         table = MetaTable.FORM_VIEW;
         break;
@@ -965,6 +999,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.GALLERY:
         scope = CacheScope.GALLERY_VIEW;
+        break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        scope = CacheScope.PDF_GENERATOR_VIEW;
         break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW;
