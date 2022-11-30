@@ -93,6 +93,7 @@
       "gallery": "Gallery",
       "form": "Form",
       "kanban": "Kanban",
+      "pdfGenerator": "PDF Generator",
       "calendar": "Calendar"
     },
     "user": "User",
@@ -574,6 +575,7 @@
         "gallery": "Add Gallery View",
         "form": "Add Form View",
         "kanban": "Add Kanban View",
+        "pdfGenerator": "Add PDF View",
         "calendar": "Add Calendar View"
       },
       "tablesMetadataInSync": "Tables metadata is in Sync",

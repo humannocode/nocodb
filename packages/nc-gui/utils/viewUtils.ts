@@ -7,6 +7,7 @@ import MdiCalendarIcon from '~icons/mdi/calendar'
 import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
+// import MdiAdobeAcrobatReader from '~/icons/mdi/MdiAdobeAcrobatReader'
 import type { Language } from '~/lib'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
@@ -15,6 +16,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   calendar: { icon: MdiCalendarIcon, color: 'purple' },
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
   [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
+  [ViewTypes.PDF_GENERATOR_VIEW]: { icon: MdiKanbanIcon, color: 'gray' },
   view: { icon: MdiEyeIcon, color: 'blue' },
 }
 

@@ -25,11 +25,8 @@ function onOpenModal(type: ViewTypes, title = '') {
         {{ $t('activity.createView') }}
       </h3>
 
-      <a-menu-item
-        key="grid"
-        class="group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
-        @click="onOpenModal(ViewTypes.GRID)"
-      >
+      <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-2.5rem nc-create-grid-view"
+        @click="onOpenModal(ViewTypes.GRID)">
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.grid') }}
@@ -47,11 +44,8 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item
-        key="gallery"
-        class="group !flex !items-center !my-0 !h-2.5rem nc-create-gallery-view"
-        @click="onOpenModal(ViewTypes.GALLERY)"
-      >
+      <a-menu-item key="gallery" class="group !flex !items-center !my-0 !h-2.5rem nc-create-gallery-view"
+        @click="onOpenModal(ViewTypes.GALLERY)">
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}
@@ -69,12 +63,8 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item
-        v-if="!isSqlView"
-        key="form"
-        class="group !flex !items-center !my-0 !h-2.5rem nc-create-form-view"
-        @click="onOpenModal(ViewTypes.FORM)"
-      >
+      <a-menu-item v-if="!isSqlView" key="form" class="group !flex !items-center !my-0 !h-2.5rem nc-create-form-view"
+        @click="onOpenModal(ViewTypes.FORM)">
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.form') }}
@@ -92,11 +82,8 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item
-        key="kanban"
-        class="group !flex !items-center !my-0 !h-2.5rem nc-create-kanban-view"
-        @click="onOpenModal(ViewTypes.KANBAN)"
-      >
+      <a-menu-item key="kanban" class="group !flex !items-center !my-0 !h-2.5rem nc-create-kanban-view"
+        @click="onOpenModal(ViewTypes.KANBAN)">
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.kanban') }}
@@ -106,6 +93,30 @@ function onOpenModal(type: ViewTypes, title = '') {
             <component :is="viewIcons[ViewTypes.KANBAN].icon" :style="{ color: viewIcons[ViewTypes.KANBAN].color }" />
 
             <div>{{ $t('objects.viewType.kanban') }}</div>
+
+            <div class="flex-1" />
+
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
+
+      <a-menu-item
+        key="pdf-generator"
+        class="group !flex !items-center !my-0 !h-2.5rem nc-create-pdf-generator-view"
+        @click="onOpenModal(ViewTypes.PDF_GENERATOR_VIEW)">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
+          <template #title>
+            {{ $t('msg.info.addView.pdfGenerator') }}
+          </template>
+
+          <div class="nc-project-menu-item !py-0 text-xs flex items-center h-full w-full gap-2">
+            <component
+              :is="viewIcons[ViewTypes.PDF_GENERATOR_VIEW]?.icon"
+              :style="{ color: viewIcons[ViewTypes.PDF_GENERATOR_VIEW]?.color }"
+            />
+
+            <div>{{ $t('objects.viewType.pdfGenerator') }}</div>
 
             <div class="flex-1" />
 
