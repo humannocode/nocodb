@@ -5,7 +5,7 @@ import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
 import tableApis from './tableApis';
 import columnApis from './columnApis';
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 import sortApis from './sortApis';
 import filterApis from './filterApis';
 import viewColumnApis from './viewColumnApis';
@@ -56,6 +56,12 @@ import syncSourceApis from './sync/syncSourceApis';
 import pdfGeneratorViewApis from './pdfGeneratorViewApis';
 
 import PDFDocument from 'pdfkit';
+import View from '../../models/View';
+import Model from '../../models/Model';
+import Base from '../../models/Base';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { nocoExecute } from 'nc-help';
 // import fs from 'fs';
 
 const clients: { [id: string]: Socket } = {};
@@ -109,11 +115,12 @@ export default function (router: Router, server) {
   router.use(pdfGeneratorViewApis);
 
   const FOOpdfExampleRouter = Router({ mergeParams: true });
+
   FOOpdfExampleRouter.get(
-    '/FOO',
+    '/FOO/:viewId',
     // metaApiMetrics,
     // ncMetaAclMw(columnAdd, 'columnAdd')
-    (req, res, next) => {
+    async (req: Request, res: Response, next) => {
       console.log(JSON.stringify(req.hostname));
       // let pdfDoc = new PDFDocument();
       // pdfDoc.pipe(fs.createWriteStream('SampleDocument.pdf'));
@@ -124,6 +131,60 @@ export default function (router: Router, server) {
       //   'Content-Type': 'application/pdf',
       //   'Content-Disposition': `attachment;filename=invoice.pdf`,
       // });
+
+      // const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+
+      console.log('req.params.viewId', req.params.viewId);
+      const view = await View.get(req.params.viewId);
+      console.log('view', JSON.stringify(view));
+
+      const model = await Model.getByIdOrName({
+        id: view?.fk_model_id || req.params.viewId,
+      });
+
+      if (!model) return next(new Error('Table not found'));
+
+      const base = await Base.get(model.base_id);
+
+      const baseModel = await Model.getBaseModelSQL({
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: NcConnectionMgrv2.get(base),
+      });
+
+      const requestObj = await getAst({ model, query: req.query, view });
+
+      const listArgs: any = { ...req.query };
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+
+      let data = [];
+      // let count = 0;
+      try {
+        data = await nocoExecute(
+          requestObj,
+          await baseModel.list(listArgs),
+          {},
+          listArgs
+        );
+        // count = await baseModel.count(listArgs);
+      } catch (e) {
+        // show empty result instead of throwing error here
+        // e.g. search some text in a numeric field
+      }
+
+      // return new PagedResponseImpl(data, {
+      //   ...req.query,
+      //   count,
+      // });
+
+      // res.json(await getDataList(model, view, req));
+
+      console.log('data', data);
 
       const stream = res.writeHead(200, {
         'Content-Type': 'application/pdf',
