@@ -26,6 +26,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
+    const isPdfGenerator = computed(() => view.value?.type === ViewTypes.PDF_GENERATOR_VIEW)
     const isSharedForm = computed(() => isForm.value && shared)
     const xWhere = computed(() => {
       let where
@@ -58,6 +59,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGrid,
       isGallery,
       isKanban,
+      isPdfGenerator,
       cellRefs,
       isSharedForm,
       sorts,

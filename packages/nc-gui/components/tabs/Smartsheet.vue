@@ -39,7 +39,7 @@ const fields = ref<ColumnType[]>([])
 
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
-const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isPdfGenerator, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 const reloadEventHook = createEventHook<void | boolean>()
 
@@ -81,6 +81,8 @@ provide(
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
               <LazySmartsheetKanban v-else-if="isKanban" />
+              
+              <LazySmartsheetPdfGenerator v-else-if="isPdfGenerator" />
             </div>
           </div>
         </template>
