@@ -18,6 +18,7 @@ import { isSystemColumn, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
+import PdfGeneratorViewColumn from './PdfGeneratorViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -38,7 +39,11 @@ export default class View implements ViewType {
   model?: Model;
   view?: FormView | GridView | KanbanView | GalleryView | PdfGeneratorView;
   columns?: Array<
-    FormViewColumn | GridViewColumn | GalleryViewColumn | KanbanViewColumn
+    | FormViewColumn
+    | GridViewColumn
+    | GalleryViewColumn
+    | KanbanViewColumn
+    | PdfGeneratorViewColumn
   >;
 
   sorts: Sort[];
@@ -479,15 +484,6 @@ export default class View implements ViewType {
 
     for (const view of views) {
       switch (view.type) {
-        case ViewTypes.PDF_GENERATOR_VIEW:
-          await GridViewColumn.insert(
-            {
-              ...insertObj,
-              fk_view_id: view.id,
-            },
-            ncMeta
-          );
-          break;
         case ViewTypes.GRID:
           await GridViewColumn.insert(
             {
@@ -499,6 +495,15 @@ export default class View implements ViewType {
           break;
         case ViewTypes.GALLERY:
           await GalleryViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+          break;
+        case ViewTypes.PDF_GENERATOR_VIEW:
+          await PdfGeneratorViewColumn.insert(
             {
               ...insertObj,
               fk_view_id: view.id,
@@ -577,6 +582,17 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        {
+          col = await PdfGeneratorViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+        }
+        break;
     }
 
     return col;
@@ -595,7 +611,11 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta
   ): Promise<
     Array<
-      GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn
+      | GridViewColumn
+      | FormViewColumn
+      | GalleryViewColumn
+      | KanbanViewColumn
+      | PdfGeneratorViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -611,6 +631,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(viewId, ncMeta);
+        break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        columns = await PdfGeneratorViewColumn.list(viewId, ncMeta);
         break;
       case ViewTypes.KANBAN:
         columns = await KanbanViewColumn.list(viewId, ncMeta);
@@ -646,6 +669,10 @@ export default class View implements ViewType {
         table = MetaTable.GALLERY_VIEW_COLUMNS;
         cacheScope = CacheScope.GALLERY_VIEW_COLUMN;
         break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        table = MetaTable.PDF_GENERATOR_VIEW_COLUMNS;
+        cacheScope = CacheScope.PDF_GENERATOR_VIEW_COLUMN;
+        break;
       case ViewTypes.KANBAN:
         table = MetaTable.KANBAN_VIEW_COLUMNS;
         cacheScope = CacheScope.KANBAN_VIEW_COLUMN;
@@ -680,7 +707,12 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<
-    GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn | any
+    | GridViewColumn
+    | FormViewColumn
+    | GalleryViewColumn
+    | KanbanViewColumn
+    | PdfGeneratorViewColumn
+    | any
   > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -721,6 +753,14 @@ export default class View implements ViewType {
           });
         case ViewTypes.KANBAN:
           return await KanbanViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+          break;
+        case ViewTypes.PDF_GENERATOR_VIEW:
+          return await PdfGeneratorViewColumn.insert({
             fk_view_id: viewId,
             fk_column_id: fkColId,
             order: colData.order,
@@ -943,6 +983,9 @@ export default class View implements ViewType {
       case ViewTypes.KANBAN:
         table = MetaTable.KANBAN_VIEW_COLUMNS;
         break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        table = MetaTable.PDF_GENERATOR_VIEW_COLUMNS;
+        break;
       case ViewTypes.FORM:
         table = MetaTable.FORM_VIEW_COLUMNS;
         break;
@@ -986,6 +1029,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.FORM:
         scope = CacheScope.FORM_VIEW_COLUMN;
+        break;
+      case ViewTypes.PDF_GENERATOR_VIEW:
+        scope = CacheScope.PDF_GENERATOR_VIEW;
         break;
     }
     return scope;

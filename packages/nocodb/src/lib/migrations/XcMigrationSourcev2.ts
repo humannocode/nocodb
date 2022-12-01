@@ -10,6 +10,7 @@ import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_ta
 import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
 import * as nc_022_add_pdf_generator_view from './v2/nc_022_add_pdf_generator_view';
+import * as nc_023_add_pdf_generator_view_column from './v2/nc_023_add_pdf_generator_view_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -31,6 +32,7 @@ export default class XcMigrationSourcev2 {
       'nc_020_kanban_view',
       'nc_021_add_fields_in_token',
       'nc_022_add_pdf_generator_view',
+      'nc_023_add_pdf_generator_view_column',
     ]);
   }
 
@@ -64,6 +66,8 @@ export default class XcMigrationSourcev2 {
         return nc_021_add_fields_in_token;
       case 'nc_022_add_pdf_generator_view':
         return nc_022_add_pdf_generator_view;
+      case 'nc_023_add_pdf_generator_view_column':
+        return nc_023_add_pdf_generator_view_column;
     }
   }
 }

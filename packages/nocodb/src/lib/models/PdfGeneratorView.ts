@@ -40,26 +40,7 @@ export default class PdfGeneratorView implements PdfGeneratorType {
     return view && new PdfGeneratorView(view);
   }
 
-
-
-
-  public static async IsColumnBeingUsedInPdfGeneratorView(
-    columnId: string,
-    ncMeta = Noco.ncMeta
-  ) {
-    return (
-      (
-        await ncMeta.metaList2(null, null, MetaTable.PDF_GENERATOR_VIEW, {
-          condition: {
-            fk_geo_data_col_id: columnId,
-          },
-        })
-      ).length > 0
-    );
-  }
-
-   static async insert(view: Partial<PdfGeneratorView>, ncMeta = Noco.ncMeta) {
-
+  static async insert(view: Partial<PdfGeneratorView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
       project_id: view.project_id,
       base_id: view.base_id,
