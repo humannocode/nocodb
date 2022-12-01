@@ -10,7 +10,7 @@ import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import Model from '../../models/Model';
 import getAst from '../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import Base from '../../models/Base';
-import PDFDocument from 'pdfkit';
+import { generate, Template } from '@pdfme/generator';
 
 export async function pdfGeneratorViewGet(
   req: Request,
@@ -18,6 +18,60 @@ export async function pdfGeneratorViewGet(
 ) {
   res.json(await PdfGeneratorView.get(req.params.pdfGeneratorViewId));
 }
+
+const BLANK_PDF =
+  'data:application/pdf;base64,JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDM4Cj4+CnN0cmVhbQp4nCvkMlAwUDC1NNUzMVGwMDHUszRSKErlCtfiyuMK5AIAXQ8GCgplbmRzdHJlYW0KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL01lZGlhQm94IFswIDAgNTk1LjQ0IDg0MS45Ml0KL1Jlc291cmNlcyA8PAo+PgovQ29udGVudHMgNSAwIFIKL1BhcmVudCAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL3RyYXBwZWQgKGZhbHNlKQovQ3JlYXRvciAoU2VyaWYgQWZmaW5pdHkgRGVzaWduZXIgMS4xMC40KQovVGl0bGUgKFVudGl0bGVkLnBkZikKL0NyZWF0aW9uRGF0ZSAoRDoyMDIyMDEwNjE0MDg1OCswOScwMCcpCi9Qcm9kdWNlciAoaUxvdmVQREYpCi9Nb2REYXRlIChEOjIwMjIwMTA2MDUwOTA5WikKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL1NpemUgNwovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgovSUQgWzwyODhCM0VENTAyOEU0MDcyNERBNzNCOUE0Nzk4OUEwQT4gPEY1RkJGNjg4NkVERDZBQUNBNDRCNEZDRjBBRDUxRDlDPl0KL1R5cGUgL1hSZWYKL1cgWzEgMiAyXQovRmlsdGVyIC9GbGF0ZURlY29kZQovSW5kZXggWzAgN10KL0xlbmd0aCAzNgo+PgpzdHJlYW0KeJxjYGD4/5+RUZmBgZHhFZBgDAGxakAEP5BgEmFgAABlRwQJCmVuZHN0cmVhbQplbmRvYmoKc3RhcnR4cmVmCjUzMgolJUVPRgo=';
+// const template: Template = {
+//   basePdf: BLANK_PDF,
+//   schemas: [
+//     {
+//       Id: {
+//         type: 'text',
+//         position: { x: 0, y: 0 },
+//         width: 10,
+//         height: 10,
+//       },
+//       cool2: {
+//         type: 'text',
+//         position: { x: 10, y: 10 },
+//         width: 10,
+//         height: 10,
+//       },
+//       // c: {
+//       //   type: 'text',
+//       //   position: { x: 20, y: 20 },
+//       //   width: 10,
+//       //   height: 10,
+//       // },
+//     },
+//   ],
+// };
+
+const template: Template = {
+  basePdf: BLANK_PDF,
+  schemas: [
+    {
+      a: {
+        type: 'text',
+        position: { x: 0, y: 0 },
+        width: 10,
+        height: 10,
+      },
+      b: {
+        type: 'text',
+        position: { x: 10, y: 10 },
+        width: 10,
+        height: 10,
+      },
+      c: {
+        type: 'text',
+        position: { x: 20, y: 20 },
+        width: 10,
+        height: 10,
+      },
+    },
+  ],
+};
 
 export async function pdfGeneratorViewGetExport(
   req: Request,
@@ -76,30 +130,54 @@ export async function pdfGeneratorViewGetExport(
 
   console.log('data', data);
 
+  // const pdfInputs = data.map((row) => ({
+  //   Id: row.Id,
+  //   cool2: row.cool2,
+  // }));
+  const pdfInputs = [{ a: 'a1', b: 'b1', c: 'c1' }];
+
+  console.log('pdfInputs', pdfInputs);
+
   const stream = res.writeHead(200, {
     'Content-Type': 'application/pdf',
     'Content-Disposition': `attachment;filename=invoice.pdf`,
   });
 
-  const doc = new PDFDocument({ bufferPages: true, font: 'Courier' });
+  const pdf = await generate({ template, inputs: pdfInputs });
+  // .then((pdf) => {
+  console.log(pdf);
 
-  doc.on('data', (chunk) => stream.write(chunk));
-  doc.on('end', () => stream.end());
+  // Browser
+  // const blob = new Blob([pdf.buffer], { type: 'application/pdf' });
+  // window.open(URL.createObjectURL(blob));
 
-  // TODO: get fields to render from view config
-  const columnIdAndTitlesToRender = [
-    { id: 'Title', label: 'Title' },
-    { id: 'cool2', label: 'Label for field cool2' },
-  ];
-  data.forEach((row, i) => {
-    doc.fontSize(20).text(`Label for row id '${row['Id']}'`);
-    columnIdAndTitlesToRender.forEach((col) => {
-      doc.fontSize(12).text(`${col.label}: ${row[col.id]}`);
-    });
-    if (i + 1 < data.length) doc.addPage();
-  });
+  // Node.js
+  // fs.writeFileSync(path.join(__dirname, `test.pdf`), pdf);
+  await stream.write(pdf);
+  // });
 
-  doc.end();
+  stream.end();
+  next();
+
+  // const doc = new PDFDocument({ bufferPages: true, font: 'Courier' });
+
+  // doc.on('data', (chunk) => stream.write(chunk));
+  // doc.on('end', () => stream.end());
+
+  // // TODO: get fields to render from view config
+  // const columnIdAndTitlesToRender = [
+  //   { id: 'Title', label: 'Title' },
+  //   { id: 'cool2', label: 'Label for field cool2' },
+  // ];
+  // data.forEach((row, i) => {
+  //   doc.fontSize(20).text(`Label for row id '${row['Id']}'`);
+  //   columnIdAndTitlesToRender.forEach((col) => {
+  //     doc.fontSize(12).text(`${col.label}: ${row[col.id]}`);
+  //   });
+  //   if (i + 1 < data.length) doc.addPage();
+  // });
+
+  // doc.end();
 
   next();
 }
