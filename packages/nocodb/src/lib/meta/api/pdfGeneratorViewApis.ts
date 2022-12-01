@@ -32,9 +32,21 @@ const template: Template = {
         width: 100,
         height: 10,
       },
-      cool2: {
+      col2: {
+        type: 'text',
+        position: { x: 0, y: 20 },
+        width: 100,
+        height: 10,
+      },
+      col3: {
+        type: 'code128',
+        position: { x: 0, y: 40 },
+        width: 100,
+        height: 25,
+      },
+      qrcode1: {
         type: 'qrcode',
-        position: { x: 10, y: 10 },
+        position: { x: 10, y: 70 },
         width: 50,
         height: 50,
       },
@@ -96,7 +108,9 @@ export async function pdfGeneratorViewGetExport(
     console.log('row', row);
     return {
       Id: `${row.Id}`,
-      cool2: `${row.cool2}`,
+      col2: `${row.col2}`,
+      col3: `${row.col3}`,
+      qrcode1: `${row.qrcode1}`,
     };
   });
 
