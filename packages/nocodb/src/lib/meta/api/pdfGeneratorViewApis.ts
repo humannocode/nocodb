@@ -21,7 +21,7 @@ export async function pdfGeneratorViewGet(
 
 export async function pdfGeneratorViewGetExport(
   req: Request,
-  res: Response<PdfGeneratorType>, 
+  res: Response<PdfGeneratorType>,
   next
 ) {
   console.log('req.params.viewId', req.params.viewId);
@@ -86,13 +86,19 @@ export async function pdfGeneratorViewGetExport(
   doc.on('data', (chunk) => stream.write(chunk));
   doc.on('end', () => stream.end());
 
-  doc.fontSize(20).text(`A heading`);
+  // TODO: get fields to render from view config
+  const columnIdAndTitlesToRender = [
+    { id: 'Title', label: 'Title' },
+    { id: 'cool2', label: 'Label for field cool2' },
+  ];
+  data.forEach((row, i) => {
+    doc.fontSize(20).text(`Label for row id '${row['Id']}'`);
+    columnIdAndTitlesToRender.forEach((col) => {
+      doc.fontSize(12).text(`${col.label}: ${row[col.id]}`);
+    });
+    if (i + 1 < data.length) doc.addPage();
+  });
 
-  doc
-    .fontSize(12)
-    .text(
-      `Lorem ipsum dolor, sit amet consectetur adipisicing elit. Maiores, saepe.`
-    );
   doc.end();
 
   next();
