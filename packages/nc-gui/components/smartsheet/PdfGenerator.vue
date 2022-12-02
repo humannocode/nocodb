@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 // TODO: remove this local/temp auth token for testing
 // replace with real/dybamic auth token header used for other API calls
-const authToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRhbmllbEBzcGF1ZGUuZGUiLCJmaXJzdG5hbWUiOm51bGwsImxhc3RuYW1lIjpudWxsLCJpZCI6InVzX3Nmdml4bHV6Mm9rN2N6Iiwicm9sZXMiOiJvcmctbGV2ZWwtY3JlYXRvcixzdXBlciIsInRva2VuX3ZlcnNpb24iOiI3MDUzMGZmOGRmYzEyNjhjMzBhYzlkNGZlNGE0MWQwMjk4ZTc0MThhMTUwYjRlYWRiNGUxYmE3M2M3YzI2YjQ1MDZjM2NmZDRmM2JkNGMyNCIsImlhdCI6MTY2OTkzMzA5NiwiZXhwIjoxNjY5OTY5MDk2fQ.1ZXlxNfizdxz8X75fHnPiw0ig1mJKUGcn1LQ7thB18I'
+
+const { token } = $(useGlobal())
 
 function saveBlob(blob: string, fileName: string) {
   const a = document.createElement('a')
@@ -16,7 +16,7 @@ const downloadPdf = () => {
 
   const xhr = new XMLHttpRequest()
   xhr.open('GET', 'http://localhost:8080/api/v1/db/meta/pdf-generators/vw_byojjt2scf1qj4/export', true)
-  xhr.setRequestHeader('xc-auth', authToken)
+  xhr.setRequestHeader('xc-auth', token)
   xhr.responseType = 'blob'
   xhr.onload = function (e) {
     if (e.currentTarget.status === 200) {
