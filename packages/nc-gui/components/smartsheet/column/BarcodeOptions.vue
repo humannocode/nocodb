@@ -27,7 +27,6 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
     ?.filter(
       (el) =>
         el.fk_column_id &&
-        // AllowedColumnTypesForQrCode.map((el) => el.toString()).includes(metaColumnById.value[el.fk_column_id].uidt),
         AllowedColumnTypesForQrAndBarcodes.includes(metaColumnById.value[el.fk_column_id].uidt as UITypes),
     )
     .map((field) => {
@@ -55,7 +54,6 @@ const supportedBarcodeFormats = [
 onMounted(() => {
   // set default value
   vModel.value.fk_barcode_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_barcode_value_column_id || ''
-  // vModel.value.meta.barcode_format = (column?.value?.colOptions as Record<string, any>)?.barcode_format || ''
 })
 
 setAdditionalValidations({
