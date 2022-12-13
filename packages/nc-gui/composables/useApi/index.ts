@@ -7,12 +7,14 @@ import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, un
 
 export function createApiInstance<SecurityDataType = any>({
   baseURL = BASE_FALLBACK_URL,
+  format = 'json',
 }: CreateApiOptions = {}): Api<SecurityDataType> {
   const config = useRuntimeConfig()
 
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
       baseURL: config.public.ncBackendUrl || baseURL,
+      format,
     }),
   )
 }

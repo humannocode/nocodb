@@ -11,11 +11,10 @@ import {
   message,
   ref,
   useI18n,
-  useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
 } from '#imports'
-import { SupportedResponseTypes } from '~~/composables/useSharedView'
+import type { SupportedResponseTypes } from '~~/composables/useSharedView'
 
 const { t } = useI18n()
 
@@ -25,7 +24,11 @@ const fields = inject(FieldsInj, ref([]))
 
 const { project } = useProject()
 
-const { $api } = useNuxtApp()
+const { api } = useApi({
+  apiOptions: {
+    format: 'arraybuffer',
+  },
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -43,7 +46,7 @@ const exportFile = async (exportType: ExportTypes) => {
     [ExportTypes.CSV]: 'blob',
     [ExportTypes.PDF]: 'arraybuffer',
   }
-  const responseType = exportTypeToResponseTypeMapping[exportType]
+  const responseType: SupportedResponseTypes = exportTypeToResponseTypeMapping[exportType]
 
   const XLSX = await import('xlsx')
   const FileSaver = await import('file-saver')
@@ -58,14 +61,14 @@ const exportFile = async (exportType: ExportTypes) => {
           filtersArr: nestedFilters.value,
         })
       } else {
-        res = await $api.dbViewRow.export(
+        res = await api.dbViewRow.export(
           'noco',
           project.value?.title as string,
           meta.value?.title as string,
           selectedView?.value.title as string,
           exportType,
           {
-            responseType,
+            format: responseType,
             query: {
               fields: fields.value.map((field) => field.title),
               offset,
@@ -87,7 +90,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
         FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
       } else if (exportType === ExportTypes.PDF) {
-        const blob = new Blob([data], { type: 'application/pdf;charset=utf-8' })
+        const blob = new Blob([data], { type: 'application/pdf;charset=utf-16' })
         FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.pdf`)
       }
 

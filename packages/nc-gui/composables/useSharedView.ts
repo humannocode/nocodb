@@ -12,6 +12,8 @@ import type {
 import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
+export type SupportedResponseTypes = 'base64' | 'blob' | 'arraybuffer'
+
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
@@ -127,8 +129,8 @@ export function useSharedView() {
   const exportFile = async (
     fields: any[],
     offset: number,
-    type: ExportTypes.EXCEL | ExportTypes.CSV,
-    responseType: 'base64' | 'blob',
+    type: ExportTypes.EXCEL | ExportTypes.CSV | ExportTypes.PDF,
+    responseType: SupportedResponseTypes,
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
