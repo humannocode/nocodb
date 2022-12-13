@@ -17,6 +17,7 @@ type PdfTemplateTypeDefinition = {
   fontSize?: number;
   height: number;
   width: number;
+  keyValueToLabelTransformer: (key: string, value: string) => string;
 };
 
 type UiTypesToPdfTemplateTypesMapping = {
@@ -35,12 +36,14 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
       type: 'qrcode',
       height: 50,
       width: 50,
+      keyValueToLabelTransformer: (_k, v) => v,
     },
     [UITypes.SingleLineText]: {
       type: 'text',
       fontSize: 20,
       height: 20,
       width: 80,
+      keyValueToLabelTransformer: (k, v) => `${k}: ${v}`,
     },
     // [UITypes.QrCode]: {
     //   type: '',
@@ -50,7 +53,6 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     // },
   };
 
-const supportedUiTypesInPdf = Object.keys(uiTypesToPdfTemplateTypesMapping);
 const createTemplateConfigForActualColumn = (col: Column, idx: number) => ({
   position: { x: 10, y: idx * 20 },
   ...uiTypesToPdfTemplateTypesMapping[col.uidt],
@@ -94,32 +96,30 @@ export async function generatePdfForModelData(
     // e.g. search some text in a numeric field
   }
 
-  const templateSchema = Object.fromEntries(
+  const supportedUiTypesInPdf = Object.keys(uiTypesToPdfTemplateTypesMapping);
+  const templateSchemaExtendedWithLabelFields = Object.fromEntries(
     model.columns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
-      .map(
-        (col, i) =>
-          [col.title, createTemplateConfigForActualColumn(col, i)] as [
-            string,
-            any
-          ]
-      )
+      .map((col, i) => {
+        return [col.title, createTemplateConfigForActualColumn(col, i)] as [
+          string,
+          any
+        ];
+      })
   );
 
-  const templateSchemaExtendedWithLabelFields = templateSchema; //.concat();
+  //   const templateSchemaExtendedWithLabelFields = templateSchema;
 
   const template: Template = {
     schemas: [templateSchemaExtendedWithLabelFields],
     basePdf: basePdf,
   };
 
-  console.log('FOO template', JSON.stringify(template));
-
-  const pdfInputs = data.map((row) =>
-    Object.fromEntries(Object.keys(row).map((k) => [k, `${row[k]}`]))
+  const pdfInputs = data.map(
+    (row) =>
+      Object.fromEntries(Object.keys(row).map((k) => [k, `${k}: ${row[k]}`]))
+    //   Object.fromEntries(Object.keys(row).map((k) => [k, uiTypesToPdfTemplateTypesMapping[k]]))
   );
-
-  console.log('pdfInputs', pdfInputs);
 
   const pdf = await generate({ template, inputs: pdfInputs });
   console.log(pdf);
