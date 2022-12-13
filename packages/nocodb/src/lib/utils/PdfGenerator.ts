@@ -117,7 +117,13 @@ export async function generatePdfForModelData(
 
   const pdfInputs = data.map(
     (row) =>
-      Object.fromEntries(Object.keys(row).map((k) => [k, `${k}: ${row[k]}`]))
+      //   Object.fromEntries(Object.keys(row).map((k) => [k, `${k}: ${row[k]}`]))
+      Object.fromEntries(
+        Object.keys(row).map((k) => {
+          return [k, `${k}: ${row[k]}`];
+          //   Object.fromEntries(Object.keys(row).map((k) => 2[k, uiTypesToPdfTemplateTypesMapping[k]]))
+        })
+      )
     //   Object.fromEntries(Object.keys(row).map((k) => [k, uiTypesToPdfTemplateTypesMapping[k]]))
   );
 
