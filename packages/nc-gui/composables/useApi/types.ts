@@ -1,6 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse, ResponseType } from 'axios'
 import type { EventHook, MaybeRef } from '@vueuse/core'
 
 export interface UseApiReturn<D = any, R = any> {
@@ -15,6 +15,7 @@ export interface UseApiReturn<D = any, R = any> {
 /** {@link Api} options */
 export interface CreateApiOptions {
   baseURL?: string
+  format?: ResponseType
 }
 
 export interface UseApiProps<D = any> {

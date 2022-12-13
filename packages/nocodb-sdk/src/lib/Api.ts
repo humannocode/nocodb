@@ -3377,7 +3377,7 @@ export class Api<
       }),
 
     /**
-     * @description CSV or Excel export
+     * @description CSV, Excel or PDF export
      *
      * @tags DB table row
      * @name CsvExport
@@ -3389,7 +3389,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'pdf',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3799,7 +3799,7 @@ export class Api<
       }),
 
     /**
-     * @description CSV or Excel export
+     * @description CSV, Excel or PDF export
      *
      * @tags DB view row
      * @name Export
@@ -3812,7 +3812,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'pdf',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3931,7 +3931,7 @@ export class Api<
      */
     csvExport: (
       sharedViewUuid: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'pdf',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
