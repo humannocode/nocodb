@@ -101,6 +101,58 @@ async function exportCsv(req: Request, res: Response) {
   res.send(data);
 }
 
+async function exportPdf(req: Request, res: Response) {
+  const view = await View.getByUUID(req.params.publicDataUuid);
+  const fields = req.query.fields;
+
+  if (!view) NcError.notFound('Not found');
+  if (
+    view.type !== ViewTypes.GRID &&
+    view.type !== ViewTypes.KANBAN &&
+    view.type !== ViewTypes.GALLERY
+  )
+    NcError.notFound('Not found');
+
+  if (view.password && view.password !== req.headers?.['xc-password']) {
+    NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
+  }
+
+  const model = await view.getModelWithInfo();
+  await view.getColumns();
+
+  const { offset, dbRows, elapsed } = await getDbRows(model, view, req);
+
+  const data = papaparse.unparse(
+    {
+      fields: model.columns
+        .sort((c1, c2) =>
+          Array.isArray(fields)
+            ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
+            : 0
+        )
+        .filter(
+          (c) =>
+            !fields || !Array.isArray(fields) || fields.includes(c.title as any)
+        )
+        .map((c) => c.title),
+      data: dbRows,
+    },
+    {
+      escapeFormulae: true,
+    }
+  );
+
+  res.set({
+    'Access-Control-Expose-Headers': 'nc-export-offset',
+    'nc-export-offset': offset,
+    'nc-export-elapsed-time': elapsed,
+    'Content-Disposition': `attachment; filename="${encodeURI(
+      view.title
+    )}-export.pdf"`,
+  });
+  res.send(data);
+}
+
 async function getDbRows(model, view: View, req: Request) {
   view.model.columns = view.columns
     .filter((c) => c.show)
@@ -248,5 +300,9 @@ router.get(
 router.get(
   '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/excel',
   catchError(exportExcel)
+);
+router.get(
+  '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/pdf',
+  catchError(exportPdf)
 );
 export default router;

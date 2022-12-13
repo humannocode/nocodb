@@ -4688,7 +4688,8 @@
             "type": "string",
             "enum": [
               "csv",
-              "excel"
+              "excel",
+              "pdf"
             ]
           },
           "name": "type",
@@ -4699,7 +4700,7 @@
       "get": {
         "summary": "Table view rows export",
         "operationId": "db-view-row-export",
-        "description": "CSV or Excel export",
+        "description": "CSV, Excel or PDF export",
         "tags": [
           "DB view row"
         ],
@@ -4755,7 +4756,8 @@
             "type": "string",
             "enum": [
               "csv",
-              "excel"
+              "excel",
+              "pdf"
             ]
           },
           "name": "type",
@@ -4766,7 +4768,7 @@
       "get": {
         "summary": "Tablerows export",
         "operationId": "db-table-row-csv-export",
-        "description": "CSV or Excel export",
+        "description": "CSV, Excel or PDF export",
         "tags": [
           "DB table row"
         ],
@@ -5351,7 +5353,8 @@
             "type": "string",
             "enum": [
               "csv",
-              "excel"
+              "excel",
+              "pdf"
             ]
           },
           "name": "type",

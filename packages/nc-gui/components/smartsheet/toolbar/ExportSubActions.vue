@@ -15,6 +15,7 @@ import {
   useProject,
   useSmartsheetStoreOrThrow,
 } from '#imports'
+import { SupportedResponseTypes } from '~~/composables/useSharedView'
 
 const { t } = useI18n()
 
@@ -35,7 +36,14 @@ const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
-  const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+  const exportTypeToResponseTypeMapping: {
+    [key in ExportTypes]: SupportedResponseTypes
+  } = {
+    [ExportTypes.EXCEL]: 'base64',
+    [ExportTypes.CSV]: 'blob',
+    [ExportTypes.PDF]: 'arraybuffer',
+  }
+  const responseType = exportTypeToResponseTypeMapping[exportType]
 
   const XLSX = await import('xlsx')
   const FileSaver = await import('file-saver')
@@ -78,6 +86,9 @@ const exportFile = async (exportType: ExportTypes) => {
         const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
 
         FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
+      } else if (exportType === ExportTypes.PDF) {
+        const blob = new Blob([data], { type: 'application/pdf;charset=utf-8' })
+        FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.pdf`)
       }
 
       offset = +headers['nc-export-offset']
@@ -110,5 +121,12 @@ const exportFile = async (exportType: ExportTypes) => {
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>
+    <a-menu-item>
+      <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.PDF)">
+        <MdiDownloadOutline class="text-gray-500" />
+        <!-- Download as PDF -->
+        {{ $t('activity.downloadPDF') }}
+      </div>
+    </a-menu-item>
   </a-menu-item>
 </template>

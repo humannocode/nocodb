@@ -385,6 +385,7 @@
     "importCSV": "Import CSV",
     "downloadCSV": "Download as CSV",
     "downloadExcel": "Download as XLSX",
+    "downloadPDF": "Download as PDF",
     "uploadCSV": "Upload CSV",
     "import": "Import",
     "importMetadata": "Import Metadata",
