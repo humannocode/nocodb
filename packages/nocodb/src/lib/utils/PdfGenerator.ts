@@ -139,9 +139,9 @@ export async function generatePdfForModelData(
       model.columns.map((col) => {
         return [
           col.title,
-          uiTypesToPdfTemplateTypesMapping[col.uidt]
-            ?.keyValueLabelTransformer ||
-            defaultKeyValueLabelTransformers.onlyValue,
+          // uiTypesToPdfTemplateTypesMapping[col.uidt]
+          //   ?.keyValueLabelTransformer ||
+          defaultKeyValueLabelTransformers.onlyValue,
         ];
       })
     );
