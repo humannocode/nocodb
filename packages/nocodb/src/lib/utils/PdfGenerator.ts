@@ -17,13 +17,22 @@ type PdfTemplateTypeDefinition = {
   fontSize?: number;
   height: number;
   width: number;
-  keyValueToLabelTransformer: (key: string, value: string) => string;
 };
+
+type KeyValueLabelTransformer = (key: string, value: string) => string;
+type UiTypesToKeyValueLabelTransformerMapping = {
+  [key in UITypes]: KeyValueLabelTransformer;
+};
+const defaultKeyValueLabelTransformer = (_k, v) => v;
+const uiTypesToKeyValueLabelTransformerMapping: Partial<UiTypesToKeyValueLabelTransformerMapping> =
+  {
+    QrCode: defaultKeyValueLabelTransformer,
+    SingleLineText: (k, v) => `${k}: ${v}`,
+  };
 
 type UiTypesToPdfTemplateTypesMapping = {
   [key in UITypes]: PdfTemplateTypeDefinition;
 };
-
 const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping> =
   {
     // TODO: think here about how in general more generic types could be mapped to specific sub types most elegantly
@@ -36,14 +45,12 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
       type: 'qrcode',
       height: 50,
       width: 50,
-      keyValueToLabelTransformer: (_k, v) => v,
     },
     [UITypes.SingleLineText]: {
       type: 'text',
       fontSize: 20,
       height: 20,
       width: 80,
-      keyValueToLabelTransformer: (k, v) => `${k}: ${v}`,
     },
     // [UITypes.QrCode]: {
     //   type: '',
@@ -56,6 +63,7 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
 const createTemplateConfigForActualColumn = (col: Column, idx: number) => ({
   position: { x: 10, y: idx * 20 },
   ...uiTypesToPdfTemplateTypesMapping[col.uidt],
+  //   uiTypesToPdfTemplateTypesMapping[col.uidt as UITypes].keyValueToLabelTransformer()
 });
 
 export async function generatePdfForModelData(
@@ -119,8 +127,21 @@ export async function generatePdfForModelData(
     (row) =>
       //   Object.fromEntries(Object.keys(row).map((k) => [k, `${k}: ${row[k]}`]))
       Object.fromEntries(
-        Object.keys(row).map((k) => {
-          return [k, `${k}: ${row[k]}`];
+        Object.keys(row).map((key) => {
+          const value = row[key];
+          const pdfTemplateForCurrentKey =
+            uiTypesToPdfTemplateTypesMapping[key as UITypes];
+          if (pdfTemplateForCurrentKey == null) {
+            console.log('FOOOO', key);
+          }
+          return [
+            key,
+            (
+              uiTypesToKeyValueLabelTransformerMapping[key as UITypes] ||
+              defaultKeyValueLabelTransformer
+            )(key, value),
+            // pdfTemplateForCurrentKey.keyValueToLabelTransformer(k, row[k]),
+          ];
           //   Object.fromEntries(Object.keys(row).map((k) => 2[k, uiTypesToPdfTemplateTypesMapping[k]]))
         })
       )
