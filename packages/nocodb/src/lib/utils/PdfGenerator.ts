@@ -12,23 +12,20 @@ import Base from '../models/Base';
 const basePdf =
   'data:application/pdf;base64,JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDM4Cj4+CnN0cmVhbQp4nCvkMlAwUDC1NNUzMVGwMDHUszRSKErlCtfiyuMK5AIAXQ8GCgplbmRzdHJlYW0KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL01lZGlhQm94IFswIDAgNTk1LjQ0IDg0MS45Ml0KL1Jlc291cmNlcyA8PAo+PgovQ29udGVudHMgNSAwIFIKL1BhcmVudCAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL3RyYXBwZWQgKGZhbHNlKQovQ3JlYXRvciAoU2VyaWYgQWZmaW5pdHkgRGVzaWduZXIgMS4xMC40KQovVGl0bGUgKFVudGl0bGVkLnBkZikKL0NyZWF0aW9uRGF0ZSAoRDoyMDIyMDEwNjE0MDg1OCswOScwMCcpCi9Qcm9kdWNlciAoaUxvdmVQREYpCi9Nb2REYXRlIChEOjIwMjIwMTA2MDUwOTA5WikKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL1NpemUgNwovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgovSUQgWzwyODhCM0VENTAyOEU0MDcyNERBNzNCOUE0Nzk4OUEwQT4gPEY1RkJGNjg4NkVERDZBQUNBNDRCNEZDRjBBRDUxRDlDPl0KL1R5cGUgL1hSZWYKL1cgWzEgMiAyXQovRmlsdGVyIC9GbGF0ZURlY29kZQovSW5kZXggWzAgN10KL0xlbmd0aCAzNgo+PgpzdHJlYW0KeJxjYGD4/5+RUZmBgZHhFZBgDAGxakAEP5BgEmFgAABlRwQJCmVuZHN0cmVhbQplbmRvYmoKc3RhcnR4cmVmCjUzMgolJUVPRgo=';
 
+type KeyValueLabelTransformer = (key: string, value: string) => string;
+
 type PdfTemplateTypeDefinition = {
   type: 'text' | 'qrcode';
   fontSize?: number;
   height: number;
   width: number;
+  keyValueLabelTransformer: KeyValueLabelTransformer;
 };
 
-type KeyValueLabelTransformer = (key: string, value: string) => string;
-type UiTypesToKeyValueLabelTransformerMapping = {
-  [key in UITypes]: KeyValueLabelTransformer;
+const defaultKeyValueLabelTransformers = {
+  onlyValue: (_k, v) => v,
+  withKeyLabel: (k, v) => `${k}: ${v}`,
 };
-const defaultKeyValueLabelTransformer = (_k, v) => v;
-const uiTypesToKeyValueLabelTransformerMapping: Partial<UiTypesToKeyValueLabelTransformerMapping> =
-  {
-    QrCode: defaultKeyValueLabelTransformer,
-    SingleLineText: (k, v) => `${k}: ${v}`,
-  };
 
 type UiTypesToPdfTemplateTypesMapping = {
   [key in UITypes]: PdfTemplateTypeDefinition;
@@ -45,12 +42,14 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
       type: 'qrcode',
       height: 50,
       width: 50,
+      keyValueLabelTransformer: defaultKeyValueLabelTransformers.onlyValue,
     },
     [UITypes.SingleLineText]: {
       type: 'text',
       fontSize: 20,
       height: 20,
       width: 80,
+      keyValueLabelTransformer: defaultKeyValueLabelTransformers.withKeyLabel,
     },
     // [UITypes.QrCode]: {
     //   type: '',
@@ -63,7 +62,6 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
 const createTemplateConfigForActualColumn = (col: Column, idx: number) => ({
   position: { x: 10, y: idx * 20 },
   ...uiTypesToPdfTemplateTypesMapping[col.uidt],
-  //   uiTypesToPdfTemplateTypesMapping[col.uidt as UITypes].keyValueToLabelTransformer()
 });
 
 export async function generatePdfForModelData(
@@ -105,7 +103,7 @@ export async function generatePdfForModelData(
   }
 
   const supportedUiTypesInPdf = Object.keys(uiTypesToPdfTemplateTypesMapping);
-  const templateSchemaExtendedWithLabelFields = Object.fromEntries(
+  const templateSchema = Object.fromEntries(
     model.columns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
       .map((col, i) => {
@@ -116,40 +114,25 @@ export async function generatePdfForModelData(
       })
   );
 
-  //   const templateSchemaExtendedWithLabelFields = templateSchema;
-
   const template: Template = {
-    schemas: [templateSchemaExtendedWithLabelFields],
+    schemas: [templateSchema],
     basePdf: basePdf,
   };
 
-  const pdfInputs = data.map(
-    (row) =>
-      //   Object.fromEntries(Object.keys(row).map((k) => [k, `${k}: ${row[k]}`]))
-      Object.fromEntries(
-        Object.keys(row).map((key) => {
-          const value = row[key];
-          const pdfTemplateForCurrentKey =
-            uiTypesToPdfTemplateTypesMapping[key as UITypes];
-          if (pdfTemplateForCurrentKey == null) {
-            console.log('FOOOO', key);
-          }
-          return [
-            key,
-            (
-              uiTypesToKeyValueLabelTransformerMapping[key as UITypes] ||
-              defaultKeyValueLabelTransformer
-            )(key, value),
-            // pdfTemplateForCurrentKey.keyValueToLabelTransformer(k, row[k]),
-          ];
-          //   Object.fromEntries(Object.keys(row).map((k) => 2[k, uiTypesToPdfTemplateTypesMapping[k]]))
-        })
-      )
-    //   Object.fromEntries(Object.keys(row).map((k) => [k, uiTypesToPdfTemplateTypesMapping[k]]))
+  const pdfInputs: Record<string, string>[] = data.map((row) =>
+    Object.fromEntries(
+      Object.keys(row).map((key) => {
+        const value = row[key];
+
+        const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
+        const transformedValueToPrint = uiTypesToPdfTemplateTypesMapping[
+          uidtOfCol
+        ]?.keyValueLabelTransformer(key, value);
+        return [key, transformedValueToPrint];
+      })
+    )
   );
 
   const pdf = await generate({ template, inputs: pdfInputs });
-  console.log(pdf);
-
   return pdf;
 }
