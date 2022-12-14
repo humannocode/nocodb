@@ -107,10 +107,10 @@ export async function generatePdfForModelData(
     model.columns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
       .map((col, i) => {
-        return [col.title, createTemplateConfigForActualColumn(col, i)] as [
-          string,
-          any
-        ];
+        return [
+          `value__${col.title}`,
+          createTemplateConfigForActualColumn(col, i),
+        ] as [string, any];
       })
   );
 
@@ -145,7 +145,7 @@ export async function generatePdfForModelData(
           key,
           value
         );
-        return [key, transformedValueToPrint];
+        return [`value__${key}`, transformedValueToPrint];
       })
     )
   );
