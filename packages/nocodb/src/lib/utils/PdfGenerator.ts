@@ -59,8 +59,16 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     // },
   };
 
-const createTemplateConfigForActualColumn = (col: Column, idx: number) => ({
-  position: { x: 10, y: idx * 20 },
+const createTemplateConfigForLabel = (idx: number) => ({
+  position: { x: 20, y: idx * 20 },
+  type: 'text',
+  fontSize: 30,
+  height: 20,
+  width: 80,
+});
+
+const createTemplateConfigForValue = (col: Column, idx: number) => ({
+  position: { x: 100, y: idx * 20 },
   ...uiTypesToPdfTemplateTypesMapping[col.uidt],
 });
 
@@ -106,13 +114,16 @@ export async function generatePdfForModelData(
   const templateSchema = Object.fromEntries(
     model.columns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
-      .map((col, i) => {
+      .flatMap((col, i) => {
         return [
-          `value__${col.title}`,
-          createTemplateConfigForActualColumn(col, i),
-        ] as [string, any];
+          [`label__${col.title}`, createTemplateConfigForLabel(i)],
+          [`value__${col.title}`, createTemplateConfigForValue(col, i)],
+        ] as [string, any][];
       })
   );
+
+  // const FOO_ENRICHED_WITH_LABELS = templateSchema;
+  // label__${key}
 
   const template: Template = {
     schemas: [templateSchema],
@@ -137,7 +148,7 @@ export async function generatePdfForModelData(
 
   const pdfInputs: Record<string, string>[] = data.map((row) =>
     Object.fromEntries(
-      Object.keys(row).map((key) => {
+      Object.keys(row).flatMap((key) => {
         const value = row[key];
 
         // const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
@@ -145,7 +156,9 @@ export async function generatePdfForModelData(
           key,
           value
         );
-        return [`value__${key}`, transformedValueToPrint];
+        const colIdValueMapping = [`value__${key}`, transformedValueToPrint];
+        const colIdLabelMapping = [`label__${key}`, key];
+        return [colIdValueMapping, colIdLabelMapping];
       })
     )
   );
