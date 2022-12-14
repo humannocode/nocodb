@@ -119,15 +119,32 @@ export async function generatePdfForModelData(
     basePdf: basePdf,
   };
 
+  type ColIdToKeyValueTransformer = {
+    [colId: string]: KeyValueLabelTransformer;
+  };
+
+  const colIdToKeyValueTransformer: ColIdToKeyValueTransformer =
+    Object.fromEntries(
+      model.columns.map((col) => {
+        return [
+          col.title,
+          uiTypesToPdfTemplateTypesMapping[col.uidt]
+            ?.keyValueLabelTransformer ||
+            defaultKeyValueLabelTransformers.onlyValue,
+        ];
+      })
+    );
+
   const pdfInputs: Record<string, string>[] = data.map((row) =>
     Object.fromEntries(
       Object.keys(row).map((key) => {
         const value = row[key];
 
-        const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
-        const transformedValueToPrint = uiTypesToPdfTemplateTypesMapping[
-          uidtOfCol
-        ]?.keyValueLabelTransformer(key, value);
+        // const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
+        const transformedValueToPrint = colIdToKeyValueTransformer[key]?.(
+          key,
+          value
+        );
         return [key, transformedValueToPrint];
       })
     )
