@@ -15,8 +15,9 @@ const basePdf =
 type KeyValueLabelTransformer = (key: string, value: string) => string;
 
 type PdfTemplateTypeDefinition = {
-  type: 'text' | 'qrcode';
+  type: 'text' | 'qrcode' | 'image';
   fontSize?: number;
+  fontName?: string;
   height: number;
   width: number;
   keyValueLabelTransformer: KeyValueLabelTransformer;
@@ -35,9 +36,13 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     // TODO: think here about how in general more generic types could be mapped to specific sub types most elegantly
     // e.g. attachments can be images but also other file types
     // but PDF templates only understand images
-    // [UITypes.Attachment]: {
-    //   type: ''
-    // }
+    [UITypes.Attachment]: {
+      type: 'text',
+      height: 50,
+      width: 50,
+      keyValueLabelTransformer: (_key: string, value: any) =>
+        `FOO; typeof value: ${typeof (value || 'BAR')}`,
+    },
     [UITypes.QrCode]: {
       type: 'qrcode',
       height: 50,
@@ -47,9 +52,11 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     [UITypes.SingleLineText]: {
       type: 'text',
       fontSize: 20,
-      height: 20,
+      fontName: 'Courier-Bold',
+      height: 50,
       width: 80,
-      keyValueLabelTransformer: defaultKeyValueLabelTransformers.withKeyLabel,
+      // keyValueLabelTransformer: defaultKeyValueLabelTransformers.withKeyLabel,
+      keyValueLabelTransformer: defaultKeyValueLabelTransformers.onlyValue,
     },
     // [UITypes.QrCode]: {
     //   type: '',
@@ -59,16 +66,18 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     // },
   };
 
+const globalMarginTop = 20;
+
 const createTemplateConfigForLabel = (idx: number) => ({
-  position: { x: 20, y: idx * 20 },
+  position: { x: 20, y: globalMarginTop + idx * 80 },
   type: 'text',
-  fontSize: 30,
+  fontSize: 20,
   height: 20,
   width: 80,
 });
 
 const createTemplateConfigForValue = (col: Column, idx: number) => ({
-  position: { x: 100, y: idx * 20 },
+  position: { x: 100, y: globalMarginTop + idx * 80 },
   ...uiTypesToPdfTemplateTypesMapping[col.uidt],
 });
 
@@ -139,9 +148,9 @@ export async function generatePdfForModelData(
       model.columns.map((col) => {
         return [
           col.title,
-          // uiTypesToPdfTemplateTypesMapping[col.uidt]
-          //   ?.keyValueLabelTransformer ||
-          defaultKeyValueLabelTransformers.onlyValue,
+          uiTypesToPdfTemplateTypesMapping[col.uidt]?.keyValueLabelTransformer,
+          //  ||
+          // defaultKeyValueLabelTransformers.onlyValue,
         ];
       })
     );
@@ -158,7 +167,7 @@ export async function generatePdfForModelData(
         );
         const colIdValueMapping = [`value__${key}`, transformedValueToPrint];
         const colIdLabelMapping = [`label__${key}`, key];
-        return [colIdValueMapping, colIdLabelMapping];
+        return [colIdLabelMapping, colIdValueMapping];
       })
     )
   );
