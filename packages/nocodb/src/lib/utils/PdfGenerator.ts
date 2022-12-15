@@ -8,11 +8,12 @@ import View from '../models/View';
 import { nocoExecute } from 'nc-help';
 import NcConnectionMgrv2 from './common/NcConnectionMgrv2';
 import Base from '../models/Base';
+import axios from 'axios';
 
 const basePdf =
   'data:application/pdf;base64,JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDM4Cj4+CnN0cmVhbQp4nCvkMlAwUDC1NNUzMVGwMDHUszRSKErlCtfiyuMK5AIAXQ8GCgplbmRzdHJlYW0KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL01lZGlhQm94IFswIDAgNTk1LjQ0IDg0MS45Ml0KL1Jlc291cmNlcyA8PAo+PgovQ29udGVudHMgNSAwIFIKL1BhcmVudCAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL3RyYXBwZWQgKGZhbHNlKQovQ3JlYXRvciAoU2VyaWYgQWZmaW5pdHkgRGVzaWduZXIgMS4xMC40KQovVGl0bGUgKFVudGl0bGVkLnBkZikKL0NyZWF0aW9uRGF0ZSAoRDoyMDIyMDEwNjE0MDg1OCswOScwMCcpCi9Qcm9kdWNlciAoaUxvdmVQREYpCi9Nb2REYXRlIChEOjIwMjIwMTA2MDUwOTA5WikKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL1NpemUgNwovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgovSUQgWzwyODhCM0VENTAyOEU0MDcyNERBNzNCOUE0Nzk4OUEwQT4gPEY1RkJGNjg4NkVERDZBQUNBNDRCNEZDRjBBRDUxRDlDPl0KL1R5cGUgL1hSZWYKL1cgWzEgMiAyXQovRmlsdGVyIC9GbGF0ZURlY29kZQovSW5kZXggWzAgN10KL0xlbmd0aCAzNgo+PgpzdHJlYW0KeJxjYGD4/5+RUZmBgZHhFZBgDAGxakAEP5BgEmFgAABlRwQJCmVuZHN0cmVhbQplbmRvYmoKc3RhcnR4cmVmCjUzMgolJUVPRgo=';
 
-type KeyValueLabelTransformer = (key: string, value: string) => string;
+type KeyValueLabelTransformer = (key: string, value: string) => Promise<string>;
 
 type PdfTemplateTypeDefinition = {
   type: 'text' | 'qrcode' | 'image';
@@ -24,8 +25,8 @@ type PdfTemplateTypeDefinition = {
 };
 
 const defaultKeyValueLabelTransformers = {
-  onlyValue: (_k, v) => v,
-  withKeyLabel: (k, v) => `${k}: ${v}`,
+  onlyValue: async (_k, v) => v,
+  withKeyLabel: async (k, v) => `${k}: ${v}`,
 };
 
 type UiTypesToPdfTemplateTypesMapping = {
@@ -37,11 +38,20 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     // e.g. attachments can be images but also other file types
     // but PDF templates only understand images
     [UITypes.Attachment]: {
-      type: 'text',
+      type: 'image',
       height: 50,
       width: 50,
-      keyValueLabelTransformer: (_key: string, value: any) =>
-        `FOO; typeof value: ${typeof (value || 'BAR')}`,
+      keyValueLabelTransformer: async (_key: string, value: any) => {
+        const imgUrl =
+          value?.[0]?.['url'] ?? 'https://freesvg.org/img/Placeholder.png';
+        const image = await axios.get(imgUrl, {
+          responseType: 'arraybuffer',
+        });
+        const imgAsBase64 = Buffer.from(image.data).toString('base64');
+
+        // value[]
+        return imgAsBase64;
+      },
     },
     [UITypes.QrCode]: {
       type: 'qrcode',
@@ -128,7 +138,6 @@ export async function generatePdfForModelData(
 
   const supportedUiTypesInPdf = Object.keys(uiTypesToPdfTemplateTypesMapping);
   const templateSchema = Object.fromEntries(
-    // TODO: try to switch here to the columns currently selected for the view
     selectedColumns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
       .flatMap((col, i) => {
@@ -153,7 +162,6 @@ export async function generatePdfForModelData(
 
   const colIdToKeyValueTransformer: ColIdToKeyValueTransformer =
     Object.fromEntries(
-      // TODO: try to switch here to the columns currently selected for the view
       selectedColumns.map((col) => {
         return [
           col.title,
@@ -164,21 +172,21 @@ export async function generatePdfForModelData(
       })
     );
 
-  const pdfInputs: Record<string, string>[] = data.map((row) =>
-    Object.fromEntries(
-      Object.keys(row).flatMap((key) => {
-        const value = row[key];
+  const pdfInputs: Record<string, string>[] = await data.map(
+    async (row) =>
+      await Object.fromEntries(
+        await Object.keys(row).flatMap(async (key) => {
+          const value = row[key];
 
-        // const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
-        const transformedValueToPrint = colIdToKeyValueTransformer[key]?.(
-          key,
-          value
-        );
-        const colIdValueMapping = [`value__${key}`, transformedValueToPrint];
-        const colIdLabelMapping = [`label__${key}`, key];
-        return [colIdLabelMapping, colIdValueMapping];
-      })
-    )
+          // const uidtOfCol = model.columns.find((c) => c.title === key).uidt;
+          const transformedValueToPrint = await colIdToKeyValueTransformer[
+            key
+          ]?.(key, value);
+          const colIdValueMapping = [`value__${key}`, transformedValueToPrint];
+          const colIdLabelMapping = [`label__${key}`, key];
+          return [colIdLabelMapping, colIdValueMapping];
+        })
+      )
   );
 
   const pdf = await generate({ template, inputs: pdfInputs });
