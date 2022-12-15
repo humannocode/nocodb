@@ -9,7 +9,8 @@ import { nocoExecute } from 'nc-help';
 import NcConnectionMgrv2 from './common/NcConnectionMgrv2';
 import Base from '../models/Base';
 import fs from 'fs';
-import path from 'path';
+// import path from 'path';
+import axios from 'axios';
 
 const basePdf =
   'data:application/pdf;base64,JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PAovRmlsdGVyIC9GbGF0ZURlY29kZQovTGVuZ3RoIDM4Cj4+CnN0cmVhbQp4nCvkMlAwUDC1NNUzMVGwMDHUszRSKErlCtfiyuMK5AIAXQ8GCgplbmRzdHJlYW0KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL01lZGlhQm94IFswIDAgNTk1LjQ0IDg0MS45Ml0KL1Jlc291cmNlcyA8PAo+PgovQ29udGVudHMgNSAwIFIKL1BhcmVudCAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzQgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL3RyYXBwZWQgKGZhbHNlKQovQ3JlYXRvciAoU2VyaWYgQWZmaW5pdHkgRGVzaWduZXIgMS4xMC40KQovVGl0bGUgKFVudGl0bGVkLnBkZikKL0NyZWF0aW9uRGF0ZSAoRDoyMDIyMDEwNjE0MDg1OCswOScwMCcpCi9Qcm9kdWNlciAoaUxvdmVQREYpCi9Nb2REYXRlIChEOjIwMjIwMTA2MDUwOTA5WikKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL1NpemUgNwovUm9vdCAxIDAgUgovSW5mbyAzIDAgUgovSUQgWzwyODhCM0VENTAyOEU0MDcyNERBNzNCOUE0Nzk4OUEwQT4gPEY1RkJGNjg4NkVERDZBQUNBNDRCNEZDRjBBRDUxRDlDPl0KL1R5cGUgL1hSZWYKL1cgWzEgMiAyXQovRmlsdGVyIC9GbGF0ZURlY29kZQovSW5kZXggWzAgN10KL0xlbmd0aCAzNgo+PgpzdHJlYW0KeJxjYGD4/5+RUZmBgZHhFZBgDAGxakAEP5BgEmFgAABlRwQJCmVuZHN0cmVhbQplbmRvYmoKc3RhcnR4cmVmCjUzMgolJUVPRgo=';
@@ -37,26 +38,26 @@ type UiTypesToPdfTemplateTypesMapping = {
   [key in UITypes]: PdfTemplateTypeDefinition;
 };
 
-const getFilePathFromImageUrl = (imgUrl: string) => {
-  const imgUrlSegments = imgUrl.split('/');
-  console.log(imgUrlSegments);
-  console.log('JSON.stringify(process.env)', JSON.stringify(process.env));
-  // const port = process.env['PORT'];
-  
-  return path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'nc',
-    'uploads',
-    'noco',
-    'Foo',
-    'Foo',
-    'Attachment',
-    'H-PeR8.jpg'
-  );
-};
+// const getFilePathFromImageUrl = (imgUrl: string) => {
+//   const imgUrlSegments = imgUrl.split('/');
+//   console.log(imgUrlSegments);
+//   console.log('JSON.stringify(process.env)', JSON.stringify(process.env));
+//   // const port = process.env['PORT'];
+
+//   return path.join(
+//     __dirname,
+//     '..',
+//     '..',
+//     '..',
+//     'nc',
+//     'uploads',
+//     'noco',
+//     'Foo',
+//     'Foo',
+//     'Attachment',
+//     'H-PeR8.jpg'
+//   );
+// };
 
 const getBase64OfAttachmentImageOrPlaceholderImage = async (value: any) => {
   const firstAttachment = value?.[0];
@@ -67,12 +68,18 @@ const getBase64OfAttachmentImageOrPlaceholderImage = async (value: any) => {
   if (imgUrl) {
     console.log('fs', await fs.promises.realpath('.'));
     // TODO: make base, project, table, view and column names dynamic
-    console.log('__dirname', __dirname);
-    console.log('path', path);
-    const imgFilePath = getFilePathFromImageUrl(imgUrl);
-    // path.join(__dirname)
-    const imgFile = await fs.promises.readFile(imgFilePath);
-    return Buffer.from(imgFile.buffer).toString('base64');
+    // console.log('__dirname', __dirname);
+    // console.log('path', path);
+    // const imgFilePath = getFilePathFromImageUrl(imgUrl);
+    // // path.join(__dirname)
+    // const imgFile = await fs.promises.readFile(imgFilePath);
+
+    // return Buffer.from(imgFile.buffer).toString('base64');
+
+    const image = await axios.get(imgUrl, {
+      responseType: 'arraybuffer',
+    });
+    return Buffer.from(image.data).toString('base64');
   } else {
     return placeholderImageBase64;
   }
