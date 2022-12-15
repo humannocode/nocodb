@@ -17,7 +17,7 @@ type KeyValueLabelTransformer = (key: string, value: string) => string;
 type PdfTemplateTypeDefinition = {
   type: 'text' | 'qrcode' | 'image';
   fontSize?: number;
-  fontName?: string;
+  // fontName?: string;
   height: number;
   width: number;
   keyValueLabelTransformer: KeyValueLabelTransformer;
@@ -52,7 +52,7 @@ const uiTypesToPdfTemplateTypesMapping: Partial<UiTypesToPdfTemplateTypesMapping
     [UITypes.SingleLineText]: {
       type: 'text',
       fontSize: 20,
-      fontName: 'Courier-Bold',
+      // fontName: 'Courier-Bold',
       height: 50,
       width: 80,
       // keyValueLabelTransformer: defaultKeyValueLabelTransformers.withKeyLabel,
@@ -119,9 +119,17 @@ export async function generatePdfForModelData(
     // e.g. search some text in a numeric field
   }
 
+  const visibleViewColumns = await (
+    await view.getColumns()
+  ).filter((c) => c.show);
+  const selectedColumns = visibleViewColumns.map((c) => {
+    return model.columns?.find((c2) => c2.id === c.fk_column_id);
+  });
+
   const supportedUiTypesInPdf = Object.keys(uiTypesToPdfTemplateTypesMapping);
   const templateSchema = Object.fromEntries(
-    model.columns
+    // TODO: try to switch here to the columns currently selected for the view
+    selectedColumns
       .filter((col) => supportedUiTypesInPdf.includes(col.uidt))
       .flatMap((col, i) => {
         return [
@@ -145,7 +153,8 @@ export async function generatePdfForModelData(
 
   const colIdToKeyValueTransformer: ColIdToKeyValueTransformer =
     Object.fromEntries(
-      model.columns.map((col) => {
+      // TODO: try to switch here to the columns currently selected for the view
+      selectedColumns.map((col) => {
         return [
           col.title,
           uiTypesToPdfTemplateTypesMapping[col.uidt]?.keyValueLabelTransformer,
