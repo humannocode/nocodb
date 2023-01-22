@@ -387,6 +387,7 @@
     "insertRow": "Insert New Row",
     "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",
+    "generatePdfForSelectedRows": "Generate PDF for Selected Rows",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Download as CSV",
