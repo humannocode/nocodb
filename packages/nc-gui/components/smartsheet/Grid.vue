@@ -50,6 +50,12 @@ import {
 
 import type { Row } from '~/lib'
 
+import * as pdfMake from "pdfmake/build/pdfmake";
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+
+(<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
+
+
 const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
@@ -162,6 +168,30 @@ async function toDataURL(url: string) {
 
 const FOO = await toDataURL('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0')
 console.log('FOO', FOO)
+
+var docDefinition = {
+  content: [
+    // if you don't need styles, you can use a simple string to define a paragraph
+    'This is a standard paragraph, using default style',
+
+    // using a { text: '...' } object lets you set styling properties
+    { text: 'This paragraph will have a bigger font', fontSize: 15 },
+
+    // if you set the value of text to an array instead of a string, you'll be able
+    // to style any part individually
+    {
+      text: [
+        'This paragraph is defined as an array of elements to make it possible to ',
+        { text: 'restyle part of it and make it bigger ', fontSize: 15 },
+        'than the rest.'
+      ]
+    }
+  ]
+};
+
+pdfMake.createPdf(docDefinition).open();
+
+
 
 const generatePdfForSelectedRows = () => {
   const selectedRows = data.value.filter((row) => row.rowMeta.selected)
