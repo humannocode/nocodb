@@ -143,6 +143,26 @@ const {
   // loadViewColumns,
 } = useViewColumns(view, meta)
 
+async function toDataURL(url: string) {
+  const xhr = new XMLHttpRequest()
+  xhr.open('GET', url)
+  xhr.responseType = 'blob'
+  xhr.send()
+
+  return new Promise((resolve, _reject) => {
+    xhr.onload = function () {
+      const reader = new FileReader()
+      reader.onloadend = function () {
+        resolve(reader.result?.toString())
+      }
+      reader.readAsDataURL(xhr.response)
+    }
+  })
+}
+
+const FOO = await toDataURL('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0')
+console.log('FOO', FOO)
+
 const generatePdfForSelectedRows = () => {
   const selectedRows = data.value.filter((row) => row.rowMeta.selected)
   if (selectedRows.length) {
@@ -183,7 +203,8 @@ const generatePdfForSelectedRows = () => {
               if (!firstImgAttachment) {
                 break
               }
-              doc.addImage(FOO_EXAMPLE_QRCODE_BASE64, 'png', 10, yPos + 10, 40, 40)
+              doc.addImage(firstImgAttachment.url)
+              // doc.addImage(FOO_EXAMPLE_QRCODE_BASE64, 'png', 10, yPos + 10, 40, 40)
               // alert('Attachment')
               break
             }
