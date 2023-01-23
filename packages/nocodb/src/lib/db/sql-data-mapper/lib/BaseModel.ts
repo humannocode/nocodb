@@ -1516,6 +1516,7 @@ export interface XcFilter {
   fields?: string;
   filterArr?: Filter[];
   sortArr?: Sort[];
+  qrAndBarcodesAsBase64?: string | boolean;
 }
 
 export interface XcFilterWithAlias extends XcFilter {
