@@ -52,6 +52,7 @@ import type { Row } from '~/lib'
 
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import { TDocumentDefinitions } from 'pdfmake/interfaces'
 
 (<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
 
@@ -149,7 +150,7 @@ const {
   // loadViewColumns,
 } = useViewColumns(view, meta)
 
-async function toDataURL(url: string) {
+const toDataURL = async (url: string): Promise<string> => {
   const xhr = new XMLHttpRequest()
   xhr.open('GET', url)
   xhr.responseType = 'blob'
@@ -159,17 +160,18 @@ async function toDataURL(url: string) {
     xhr.onload = function () {
       const reader = new FileReader()
       reader.onloadend = function () {
-        resolve(reader.result?.toString())
+        resolve(reader.result?.toString() || '')
       }
       reader.readAsDataURL(xhr.response)
     }
   })
 }
 
-const FOO = await toDataURL('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0')
-console.log('FOO', FOO)
+const FOO_IMG_URL = 'https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0'
+const FOO_IMG_DATA_URL: string = await toDataURL(FOO_IMG_URL)
+console.log('FOO', FOO_IMG_DATA_URL)
 
-var docDefinition = {
+var docDefinition: TDocumentDefinitions = {
   content: [
     // if you don't need styles, you can use a simple string to define a paragraph
     'This is a standard paragraph, using default style',
@@ -185,11 +187,16 @@ var docDefinition = {
         { text: 'restyle part of it and make it bigger ', fontSize: 15 },
         'than the rest.'
       ]
+    }, 
+    {
+      image: FOO_IMG_DATA_URL,
+      width: 100,
+      height: 100,
     }
   ]
 };
 
-pdfMake.createPdf(docDefinition).open();
+pdfMake.createPdf(docDefinition).download();
 
 
 
