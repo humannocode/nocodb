@@ -194,94 +194,122 @@ const toDataURL = async (url: string): Promise<string> => {
 
 
 
+const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
 
-const generatePdfForSelectedRows = () => {
-  const selectedRows = data.value.filter((row) => row.rowMeta.selected)
-  if (selectedRows.length) {
-    // alert(JSON.stringify(selectedRows))
+  const docDefinitionContent: Content = []
 
-    // Default export is a4 paper, portrait, using millimeters for units
-    // const doc = new jsPDF()
+  // TODO: to make the image to data url processing (which also includes downloading images) in parallel: 
+  // use a promise/await approach here
+  // But to respect the order of images/attachments/qr codes etc: 
+  // 1. Extract the images out int keyed/named images array (PdfMake.js supports this) 
+  // and do the processing with Promise.all, map and async/await 
+  // 2. The image config entries will still be created in order (and synchronously)
+  // For linking them, an idea for an image key could be `${rowIdx}-${columnName}`
+  //
+  for(let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
+    const row = selectedRows[rowIdx]
 
-    // console.log('FOO')
-    // console.log(JSON.stringify(filteredFieldList.value))
+    for(let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
+      const col = fieldsForPdf[colIdx]
+      const yPos = 10 + colIdx * 60
+      const cellValue = row[col.title!]
+      if (!cellValue) {
+        return
+      }
+      console.log('FOO cellValue', cellValue)
+      docDefinitionContent.push({
+        text: col.title || '',
+        style: {
+          bold: true,
+          fontSize: 20,
+          lineHeight: 1
+        },
+        pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
+      })
 
-    const docDefinitionContent: Content = []
-
-    selectedRows.forEach((row, rowIdx) => {
-      // if (idx > 0) {
-      //   doc.addPage()
-      // }
-      // doc.table()
-      // view.value?.
-
-      // view?.value.fiel
-      // const orderedCols = meta.value?.columns?.sort((col) => col.order || 0)
-      // alert(JSON.stringify(orderedCols?.map((col) => col.title)))
-
-      const fieldsForPdf = sortedAndFilteredFields.value
-        ?.filter((col) => filteredFieldList.value.map((el) => el.title).includes(col.title || ''))
-      
-      fieldsForPdf.forEach((col, colIdx) => {
-          // col.or
-          const yPos = 10 + colIdx * 60
-          const cellValue = row.row[col.title!]
-          // doc.setFont('Arial', undefined, 25)
-          docDefinitionContent.push({
-            text: col.title || '',
-            pageBreak: (colIdx === fieldsForPdf.length-1 && (rowIdx !== selectedRows.length-1)) ? 'after' : undefined,
-            // fontFeatures: 
-            // bold: () => true,
+      switch (col.uidt) {
+        case UITypes.Attachment: {
+          const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
+          if(!imgAttachments?.length) {
+            break
+          }
+          console.log('imgAttachments', imgAttachments)
+          for(let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+            const imgAttachment = imgAttachments[imgAttachmentIdx]
+            if (!imgAttachment) {
+              continue
+            }
+            const imgDataUrl = await toDataURL(imgAttachment.url)
+            // console.log('FOO imgDataUrl', imgDataUrl)
+            docDefinitionContent.push({
+              image: imgDataUrl,
+              width: 100,
           })
-          // doc.text(col.title!, 10, yPos)
-
-          // switch (col.uidt) {
-          //   case UITypes.Attachment: {
-          //     alert(JSON.stringify(cellValue))
-          //     const attachmentsObjects = JSON.parse(cellValue) as any[]
-          //     const imgAttachments = attachmentsObjects.filter((attObj) => isImage(attObj.attObj, attObj.mimetype))
-          //     const firstImgAttachment = imgAttachments[0]
-          //     if (!firstImgAttachment) {
-          //       break
-          //     }
-          //     doc.addImage(firstImgAttachment.url)
-          //     // doc.addImage(FOO_EXAMPLE_QRCODE_BASE64, 'png', 10, yPos + 10, 40, 40)
-          //     // alert('Attachment')
-          //     break
-          //   }
-          //   default: {
-          //     // doc.setFont('Arial', undefined, 20)
-          //     doc.text(`${cellValue}`, 10, yPos + 10)
-          //     break
-          //   }
+            
+          }
+          // const firstImgAttachment = imgAttachments?.[0]
+          // if (!firstImgAttachment) {
+          //   break
           // }
-        })
-    })
 
-    const docDefinition: TDocumentDefinitions = {
-      content: docDefinitionContent,
-      // pageBreakBefore: function (currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
-      //   currentNode.
-      //   return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
-      // }
+          break
+        }
+        default: {
+          docDefinitionContent.push({
+            text: `${cellValue}`,
+            style: {
+              bold: false,
+              fontSize: 10,
+              lineHeight: 2
+            },
+          })
+          break
+        }
+      }
+    // })
     }
 
+  }
+  // })
 
-    // doc.addPage()
-    // doc.text('Hello world!', 10, 10)
-    // const dateTimeStrForPdfFileName
+  console.log('docDefinitionContent', docDefinitionContent)
+
+  const docDefinition: TDocumentDefinitions = {
+    content: docDefinitionContent,
+    // pageBreakBefore: function (currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
+    //   currentNode.
+    //   return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
+    // }
+  }
+
+  return docDefinition
+
+}
+
+const onClickGeneratePdfForSelectedRows = async () => {
+  const selectedRows = data.value.filter((row) => row.rowMeta.selected).map(row => row.row)
+  console.log('FOO selectedRows', selectedRows)
+
+  const fieldsForPdf = sortedAndFilteredFields.value
+    ?.filter((col) => filteredFieldList.value.map((el) => el.title).includes(col.title || '')).map(col => col)
+  console.log('FOO fieldsForPdf', fieldsForPdf)
+
+  if (selectedRows.length && fieldsForPdf?.length) {
+
+
+    // alert(JSON.stringify(selectedRows))
+    // alert(JSON.stringify(fieldsForPdf))
+    // console.log(JSON.stringify(filteredFieldList.value))
+
+
+    const docDefinition = await getDocDefinitionForSelectedRows(selectedRows, fieldsForPdf)
+    console.log('FOO docDefinition', docDefinition)
+
     const pdfFileName = `${meta.value?.title || 'table'}_${view.value?.title || 'view'}__${selectedRows.length}_rows__.pdf`
-    // doc.save(pdfFileName)
     pdfMake.createPdf(docDefinition).download(pdfFileName);
 
-
-    // $e.emit(SmartsheetStoreEvents.GENERATE_PDF, {
-    //   meta: meta.value,
-    //   view: view.value,
-    //   rows: selectedRows,
-    // })
   } else {
-    message.error(t('Please select at least one row'))
+    message.error(t('Please select at least one row and column'))
   }
 }
 
@@ -947,7 +975,7 @@ const closeAddColumnDropdown = () => {
               </div>
             </a-menu-item>
 
-            <a-menu-item @click="generatePdfForSelectedRows">
+            <a-menu-item @click="onClickGeneratePdfForSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Generate PDF for Selected Rows -->
                 {{ $t('activity.generatePdfForSelectedRows') }}
