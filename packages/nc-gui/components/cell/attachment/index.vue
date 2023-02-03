@@ -154,38 +154,28 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       modalVisible.value = true
     } else {
       // click Attach File button
-      ;(document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
+      ; (document.querySelector('.nc-attachment-modal.active .nc-attach-file') as HTMLDivElement)?.click()
     }
   }
 })
 </script>
 
 <template>
-  <div
-    ref="attachmentCellRef"
-    class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
-  >
+  <div ref="attachmentCellRef"
+    class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <LazyCellAttachmentCarousel />
 
     <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
-      <general-overlay
-        v-model="isOverDropZone"
-        inline
-        :target="currentCellRef"
-        class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
-      >
+      <general-overlay v-model="isOverDropZone" inline :target="currentCellRef"
+        class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl">
         <MaterialSymbolsFileCopyOutline class="text-accent" />
         Drop here
       </general-overlay>
     </template>
 
-    <div
-      v-if="!isReadonly"
-      :class="{ 'mx-auto px-4': !visibleItems.length }"
+    <div v-if="!isReadonly" :class="{ 'mx-auto px-4': !visibleItems.length }"
       class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-      data-testid="attachment-cell-file-picker-button"
-      @click.stop="open"
-    >
+      data-testid="attachment-cell-file-picker-button" @click.stop="open">
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
@@ -193,13 +183,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 
         <div class="flex items-center gap-2">
           <MaterialSymbolsAttachFile
-            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
-          />
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]" />
 
-          <div
-            v-if="!visibleItems.length"
-            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
-          >
+          <div v-if="!visibleItems.length"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
             Add file(s)
           </div>
         </div>
@@ -209,11 +196,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
     <div v-else class="flex" />
 
     <template v-if="visibleItems.length">
-      <div
-        ref="sortableRef"
-        :class="{ dragging }"
-        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
-      >
+      <div ref="sortableRef" :class="{ dragging }"
+        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto">
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
           <a-tooltip placement="bottom">
             <template #title>
@@ -222,14 +206,8 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 
             <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
               <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
-                <LazyNuxtImg
-                  quality="75"
-                  placeholder
-                  fit="cover"
-                  :alt="item.title || `#${i}`"
-                  :src="item.url || item.data"
-                  class="max-w-full max-h-full"
-                />
+                <LazyNuxtImg quality="75" placeholder fit="cover" :alt="item.title || `#${i}`"
+                  :src="item.url || item.data" class="max-w-full max-h-full" />
               </div>
             </template>
 
@@ -243,8 +221,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       </div>
 
       <div
-        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-      >
+        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)">
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
@@ -252,8 +229,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
 
           <MdiArrowExpand
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
-            @click.stop="modalVisible = true"
-          />
+            @click.stop="modalVisible = true" />
         </a-tooltip>
       </div>
     </template>
@@ -270,7 +246,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
     }
 
     .ghost,
-    .ghost > * {
+    .ghost>* {
       @apply !pointer-events-none;
     }
 
