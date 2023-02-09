@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -17,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  RowHeightInj,
   SmartsheetStoreEvents,
   computed,
   createEventHook,
@@ -106,13 +107,12 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
-const tbodyEl = ref<HTMLElement>()
 const gridWrapper = ref<HTMLElement>()
 const tableHead = ref<HTMLElement>()
 
-const isAddingColumnAllowed = !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value
+const isAddingColumnAllowed = $computed(() => !readOnly.value && !isLocked.value && isUIAllowed('add-column') && !isSqlView.value)
 
-const isAddingEmptyRowAllowed = !isView && !isLocked.value && hasEditPermission && !isSqlView.value
+const isAddingEmptyRowAllowed = $computed(() => !isView && !isLocked.value && hasEditPermission && !isSqlView.value)
 
 const {
   isLoading,
@@ -362,128 +362,148 @@ const getContainerScrollForElement = (
   return scroll
 }
 
-const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCellClick, clearSelectedRange, copyValue } =
-  useMultiSelect(
-    meta,
-    fields,
-    data,
-    $$(editEnabled),
-    isPkAvail,
-    clearCell,
-    makeEditable,
-    scrollToCell,
-    (e: KeyboardEvent) => {
-      // ignore navigating if picker(Date, Time, DateTime, Year)
-      // or single/multi select options is open
-      const activePickerOrDropdownEl = document.querySelector(
-        '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
-      )
-      if (activePickerOrDropdownEl) {
+const {
+  isCellSelected,
+  activeCell,
+  handleMouseDown,
+  handleMouseOver,
+  handleCellClick,
+  clearSelectedRange,
+  copyValue,
+  isCellActive,
+  tbodyEl,
+  resetSelectedRange,
+} = useMultiSelect(
+  meta,
+  fields,
+  data,
+  $$(editEnabled),
+  isPkAvail,
+  clearCell,
+  makeEditable,
+  scrollToCell,
+  (e: KeyboardEvent) => {
+    // ignore navigating if picker(Date, Time, DateTime, Year)
+    // or single/multi select options is open
+    const activePickerOrDropdownEl = document.querySelector(
+      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    )
+    if (activePickerOrDropdownEl) {
+      e.preventDefault()
+      return true
+    }
+
+    // skip keyboard event handling if there is a drawer / modal
+    if (isDrawerOrModalExist()) {
+      return true
+    }
+
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    const altOrOptionKey = e.altKey
+    if (e.key === ' ') {
+      if (isCellActive.value && !editEnabled && hasEditPermission) {
         e.preventDefault()
+        clearSelectedRange()
+        const row = data.value[activeCell.row]
+        expandForm(row)
         return true
       }
-
-      // skip keyboard event handling if there is a drawer / modal
-      if (isDrawerOrModalExist()) {
+    } else if (e.key === 'Escape') {
+      if (editEnabled) {
+        editEnabled = false
         return true
       }
+    } else if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        // add a line break for types like LongText / JSON
+        return true
+      }
+      if (editEnabled) {
+        editEnabled = false
+        return true
+      }
+    }
 
-      const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-      const altOrOptionKey = e.altKey
-      if (e.key === ' ') {
-        if (activeCell.row != null && !editEnabled && hasEditPermission) {
+    if (cmdOrCtrl) {
+      if (!isCellActive.value) return
+
+      switch (e.key) {
+        case 'ArrowUp':
           e.preventDefault()
           clearSelectedRange()
-          const row = data.value[activeCell.row]
-          expandForm(row)
-          return true
-        }
-      } else if (e.key === 'Escape') {
-        if (editEnabled) {
+          activeCell.row = 0
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
           editEnabled = false
           return true
-        }
-      } else if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          // add a line break for types like LongText / JSON
-          return true
-        }
-        if (editEnabled) {
+        case 'ArrowDown':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = data.value.length - 1
+          activeCell.col = activeCell.col ?? 0
+          scrollToCell?.()
           editEnabled = false
           return true
-        }
+        case 'ArrowRight':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = fields.value?.length - 1
+          scrollToCell?.()
+          editEnabled = false
+          return true
+        case 'ArrowLeft':
+          e.preventDefault()
+          clearSelectedRange()
+          activeCell.row = activeCell.row ?? 0
+          activeCell.col = 0
+          scrollToCell?.()
+          editEnabled = false
+          return true
       }
+    }
 
-      if (cmdOrCtrl) {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = 0
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowDown':
-            e.preventDefault()
-            clearSelectedRange()
+    if (altOrOptionKey) {
+      switch (e.keyCode) {
+        case 82: {
+          // ALT + R
+          if (isAddingEmptyRowAllowed) {
+            $e('c:shortcut', { key: 'ALT + R' })
+            addEmptyRow()
             activeCell.row = data.value.length - 1
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowRight':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = activeCell.row ?? 0
-            activeCell.col = fields.value?.length - 1
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowLeft':
-            e.preventDefault()
-            clearSelectedRange()
-            activeCell.row = activeCell.row ?? 0
             activeCell.col = 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
+            resetSelectedRange()
+            nextTick(() => {
+              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+                behavior: 'smooth',
+              })
+            })
+          }
+          break
+        }
+        case 67: {
+          // ALT + C
+          if (isAddingColumnAllowed) {
+            $e('c:shortcut', { key: 'ALT + C' })
+            addColumnDropdown.value = true
+          }
+          break
         }
       }
+    }
+  },
+  async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
+    const rowObj = data.value[ctx.row]
+    const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
-      if (altOrOptionKey) {
-        switch (e.keyCode) {
-          case 82: {
-            // ALT + R
-            if (isAddingEmptyRowAllowed) {
-              $e('c:shortcut', { key: 'ALT + R' })
-              addEmptyRow()
-            }
-            break
-          }
-          case 67: {
-            // ALT + C
-            if (isAddingColumnAllowed) {
-              $e('c:shortcut', { key: 'ALT + C' })
-              addColumnDropdown.value = true
-            }
-            break
-          }
-        }
-      }
-    },
-    async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
-      const rowObj = data.value[ctx.row]
-      const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
+    if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      return
+    }
 
-      if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
-        return
-      }
-
-      // update/save cell value
-      await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
-    },
-  )
+    // update/save cell value
+    await updateOrSaveRow(rowObj, ctx.updatedColumnTitle || columnObj.title)
+  },
+)
 
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? activeCell.row
@@ -532,6 +552,23 @@ function scrollToCell(row?: number | null, col?: number | null) {
   }
 }
 
+const rowHeight = computed(() => {
+  if ((view.value?.view as GridType)?.row_height !== undefined) {
+    switch ((view.value?.view as GridType)?.row_height) {
+      case 0:
+        return 1
+      case 1:
+        return 2
+      case 2:
+        return 4
+      case 3:
+        return 6
+      default:
+        return 1
+    }
+  }
+})
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -543,6 +580,8 @@ provide(IsGridInj, ref(true))
 provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
+
+provide(RowHeightInj, rowHeight)
 
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
@@ -607,7 +646,18 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
   }
 
-  rowObj.row[columnObj.title] = null
+  // handle Checkbox and rating fields in a special way
+  switch (columnObj.uidt) {
+    case UITypes.Checkbox:
+      rowObj.row[columnObj.title] = false
+      break
+    case UITypes.Rating:
+      rowObj.row[columnObj.title] = 0
+      break
+    default:
+      rowObj.row[columnObj.title] = null
+      break
+  }
 
   if (!skipUpdate) {
     // update/save cell value
@@ -651,7 +701,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 
-onClickOutside(smartTable, (e) => {
+onClickOutside(tbodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
@@ -726,11 +776,14 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       currentRow.rowMeta.changed = false
       continue
     }
+
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
-        if (isVirtualCol(field)) continue
+        // `url` would be enriched in attachment during listing
+        // hence it would consider as a change while it is not necessary to update
+        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
         if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!, {}, args)
         }
@@ -844,7 +897,7 @@ const closeAddColumnDropdown = () => {
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu">
           <thead ref="tableHead">
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px] !z-4">
               <th data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center"
                   data-testid="nc-check-all">
@@ -890,7 +943,11 @@ const closeAddColumnDropdown = () => {
           <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row" :data-testid="`grid-row-${rowIndex}`">
+                <tr
+                  class="nc-grid-row"
+                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :data-testid="`grid-row-${rowIndex}`"
+                >
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div v-if="!readOnly || !isLocked" class="nc-row-no text-xs text-gray-500"
@@ -928,23 +985,44 @@ const closeAddColumnDropdown = () => {
                     class="cell relative cursor-pointer nc-grid-cell" :class="{
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
-                    }" :data-testid="`cell-${columnObj.title}-${rowIndex}`" :data-key="rowIndex + columnObj.id"
-                    :data-col="columnObj.id" :data-title="columnObj.title"
+                      'align-middle': !rowHeight || rowHeight === 1,
+                      'align-top': rowHeight && rowHeight !== 1,
+                    }"
+                    :data-testid="`cell-${columnObj.title}-${rowIndex}`"
+                    :data-key="rowIndex + columnObj.id"
+                    :data-col="columnObj.id"
+                    :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
                     @mouseover="handleMouseOver(rowIndex, colIndex)"
                     @click="handleCellClick($event, rowIndex, colIndex)" @dblclick="makeEditable(row, columnObj)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })">
                     <div v-if="!switchingTab" class="w-full h-full">
-                      <LazySmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]"
-                        :column="columnObj" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :row="row" :read-only="readOnly" @navigate="onNavigate" />
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(columnObj)"
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :row="row"
+                        :read-only="readOnly"
+                        @navigate="onNavigate"
+                        @save="updateOrSaveRow(row, '', state)"
+                      />
 
-                      <LazySmartsheetCell v-else v-model="row.row[columnObj.title]" :column="columnObj" :edit-enabled="
-                        !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                      " :row-index="rowIndex" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :read-only="readOnly" @update:edit-enabled="editEnabled = $event"
-                        @save="updateOrSaveRow(row, columnObj.title, state)" @navigate="onNavigate"
-                        @cancel="editEnabled = false" />
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :edit-enabled="
+                          !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                        "
+                        :row-index="rowIndex"
+                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly"
+                        @update:edit-enabled="editEnabled = $event"
+                        @save="updateOrSaveRow(row, columnObj.title, state)"
+                        @navigate="onNavigate"
+                        @cancel="editEnabled = false"
+                      />
                     </div>
                   </SmartsheetTableDataCell>
                 </tr>
@@ -1047,7 +1125,7 @@ const closeAddColumnDropdown = () => {
 
   td:not(:first-child)>div {
     overflow: hidden;
-    @apply flex items-center h-auto px-1;
+    @apply flex px-1 h-auto;
   }
 
   table,

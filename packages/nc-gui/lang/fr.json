@@ -205,7 +205,8 @@
     "quickImport": "Importation rapide",
     "advancedSettings": "Paramètres avancés",
     "codeSnippet": "Extrait de code",
-    "keyboardShortcut": "Raccourcis clavier"
+    "keyboardShortcut": "Raccourcis clavier",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Créé par",
