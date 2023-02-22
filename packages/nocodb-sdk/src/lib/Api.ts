@@ -502,7 +502,7 @@ export interface HookType {
   description?: string;
   env?: string;
   type?: string;
-  event?: 'After' | 'Before';
+  event?: 'after' | 'before';
   operation?: 'insert' | 'delete' | 'update';
   async?: boolean;
   payload?: string;
@@ -1860,6 +1860,22 @@ export class Api<
     metaDiffGet: (projectId: string, params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/meta-diff`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Project
+     * @name HasEmptyOrNullFilters
+     * @request GET:/api/v1/db/meta/projects/{projectId}/has-empty-or-null-filters
+     * @response `200` `any` OK
+     */
+    hasEmptyOrNullFilters: (projectId: string, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/has-empty-or-null-filters`,
         method: 'GET',
         format: 'json',
         ...params,

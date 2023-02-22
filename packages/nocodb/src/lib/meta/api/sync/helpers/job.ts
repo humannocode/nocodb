@@ -207,7 +207,8 @@ export default async (
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
 
     return file;
   }
@@ -219,7 +220,8 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 
@@ -1290,7 +1292,7 @@ export default async (
   async function nocoSetPrimary(aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       logDetailed(
-        `[${idx + 1}/${aTblSchema.length}] Configuring Primary value : ${
+        `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
         }`
       );
@@ -1974,8 +1976,10 @@ export default async (
     isNotEmpty: 'notempty',
     contains: 'like',
     doesNotContain: 'nlike',
-    isAnyOf: 'eq',
-    isNoneOf: 'neq',
+    isAnyOf: 'anyof',
+    isNoneOf: 'nanyof',
+    '|': 'anyof',
+    '&': 'allof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -2015,17 +2019,22 @@ export default async (
         datatype === UITypes.SingleSelect ||
         datatype === UITypes.MultiSelect
       ) {
+        if (filter.operator === 'doesNotContain') {
+          filter.operator = 'isNoneOf';
+        }
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
-          for (let i = 0; i < filter.value.length; i++) {
-            const fx = {
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: await sMap.getNcNameFromAtId(filter.value[i]),
-            };
-            ncFilters.push(fx);
-          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: (
+              await Promise.all(
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+              )
+            ).join(','),
+          };
+          ncFilters.push(fx);
         }
         // not array - add as is
         else if (filter.value) {
@@ -2223,10 +2232,10 @@ export default async (
         logDetailed('Migrating Lookup form Rollup columns completed');
       }
     }
-    logDetailed('Configuring Primary value column');
-    // configure primary values
+    logDetailed('Configuring Display Value column');
+    // configure Display Value
     await nocoSetPrimary(aTblSchema);
-    logDetailed('Configuring primary value column completed');
+    logDetailed('Configuring Display Value column completed');
 
     logBasic('Configuring User(s)');
     // add users

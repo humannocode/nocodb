@@ -187,7 +187,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     return this.connectionConfig?.meta?.dbAlias;
   }
 
-  public async getSqlClient(): Promise<any> {
+  public async getSqlClient() {
     return NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
@@ -2511,11 +2511,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
         ctx,
         filename: '',
       }).getVitualColumns();
-      // set default primary values
+      // set default display values
       ModelXcMetaFactory.create(
         this.connectionConfig,
         {}
-      ).mapDefaultPrimaryValue(meta.columns);
+      ).mapDefaultDisplayValue(meta.columns);
       // update meta
       await this.xcMeta.metaUpdate(
         this.projectId,
