@@ -266,6 +266,18 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
 
           break
         }
+        case UITypes.SingleSelect: {
+          debugger
+          alert('single select pdf export')
+          debugger
+          docDefinitionContent.push({
+            qr: "FOO BAR",
+            eccLevel: 'M',
+            margin: 1,
+            version: 4,
+          });
+          break
+        }
         case UITypes.QrCode: {
           docDefinitionContent.push({
             qr: cellValue,
@@ -280,7 +292,14 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           break
         }
         case UITypes.LongText: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
+          console.log('in case for LongText with cellValue: ', cellValue)
+          try {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+          }
+          catch (e) {
+            console.log('catch in LongText:', e)
+            debugger
+          }
           break
         }
         case UITypes.Number: {
