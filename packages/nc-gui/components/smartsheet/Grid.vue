@@ -133,19 +133,6 @@ const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
-// const {
-//   // showSystemFields,
-//   sortedAndFilteredFields,
-//   // fields,
-//   filteredFieldList,
-//   // filterQuery,
-//   // showAll,
-//   // hideAll,
-//   // saveOrUpdate,
-//   // metaColumnById,
-//   // loadViewColumns,
-// } = useViewColumns(view, meta)
-
 const toDataURL = async (url: string): Promise<string> => {
   const xhr = new XMLHttpRequest()
   xhr.open('GET', url)
@@ -279,10 +266,21 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         //   break
         // }
         case UITypes.SingleSelect: {
-          debugger
-          // alert('single select pdf export')
-          debugger
           docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.MultiSelect: {
+            console.info('typeof(cellValue)', typeof(cellValue))
+            console.debug('cellValue', cellValue)
+          const multiSelectValuesAsListContentConfig: Content = {
+            ul: cellValue.split(',').map((multiSelectValue: string) => simpleValueRendering(multiSelectValue)),
+            style: {
+              bold: false,
+              fontSize: 10,
+              lineHeight: 2
+            }
+          }
+          docDefinitionContent.push(multiSelectValuesAsListContentConfig)
           break
         }
         case UITypes.Checkbox: {
