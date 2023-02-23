@@ -237,6 +237,24 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
       }
 
       switch (col.uidt) {
+        case UITypes.SingleLineText: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.LongText: {
+          console.log('in case for LongText with cellValue: ', cellValue)
+          try {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+          }
+          catch (e) {
+            console.log('catch in LongText:', e)
+          }
+          break
+        }
+        case UITypes.Number: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
         // case UITypes.Attachment: {
         //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
         //   if (!imgAttachments?.length) {
@@ -270,8 +288,6 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           break
         }
         case UITypes.MultiSelect: {
-            console.info('typeof(cellValue)', typeof(cellValue))
-            console.debug('cellValue', cellValue)
           const multiSelectValuesAsListContentConfig: Content = {
             ul: cellValue.split(',').map((multiSelectValue: string) => simpleValueRendering(multiSelectValue)),
             style: {
@@ -284,10 +300,8 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           break
         }
         case UITypes.Checkbox: {
-          debugger
-          // alert('checkbox pdf export')
-          debugger
-          docDefinitionContent.push(simpleValueRendering(cellValue))
+          const checkboxValueAsYesOrNo = cellValue ? 'Yes' : 'No'
+          docDefinitionContent.push(simpleValueRendering(checkboxValueAsYesOrNo))
           break
         }
         case UITypes.QrCode: {
@@ -303,22 +317,11 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           docDefinitionContent.push(simpleValueRendering(cellValue))
           break
         }
-        case UITypes.LongText: {
-          console.log('in case for LongText with cellValue: ', cellValue)
-          try {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
-          }
-          catch (e) {
-            console.log('catch in LongText:', e)
-            debugger
-          }
-          break
-        }
-        case UITypes.Number: {
+        case UITypes.Date: {
           docDefinitionContent.push(simpleValueRendering(cellValue))
           break
         }
-        case UITypes.SingleLineText: {
+        case UITypes.DateTime: {
           docDefinitionContent.push(simpleValueRendering(cellValue))
           break
         }
