@@ -218,12 +218,14 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
   for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
     const row = selectedRows[rowIdx]
 
+    console.log('FOO row', row)
     for (let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
+      console.log('FOO colIdx', colIdx)
       const col = fieldsForPdf[colIdx]
       const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
       if (!cellValue) {
-        return
+        continue
       }
       console.log('FOO cellValue', cellValue)
       docDefinitionContent.push({
@@ -236,46 +238,49 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         },
         pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
       })
+      
 
       switch (col.uidt) {
-        case UITypes.Attachment: {
-          const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
-          if (!imgAttachments?.length) {
-            break
-          }
-          console.log('imgAttachments', imgAttachments)
-          for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
-            const imgAttachment = imgAttachments[imgAttachmentIdx]
-            if (!imgAttachment) {
-              continue
-            }
-            const imgDataUrl = await toDataURL(imgAttachment.url)
-            console.log('FOO imgDataUrl', imgDataUrl)
-            // { qr: 'text in QR' },
+        // case UITypes.Attachment: {
+        //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
+        //   if (!imgAttachments?.length) {
+        //     break
+        //   }
+        //   console.log('imgAttachments', imgAttachments)
+        //   for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+        //     const imgAttachment = imgAttachments[imgAttachmentIdx]
+        //     if (!imgAttachment) {
+        //       continue
+        //     }
+        //     const imgDataUrl = await toDataURL(imgAttachment.url)
+        //     console.log('FOO imgDataUrl', imgDataUrl)
+        //     // { qr: 'text in QR' },
 
-            docDefinitionContent.push({
-              image: imgDataUrl,
-              width: 100,
-            })
+        //     docDefinitionContent.push({
+        //       image: imgDataUrl,
+        //       width: 100,
+        //     })
 
-          }
-          // const firstImgAttachment = imgAttachments?.[0]
-          // if (!firstImgAttachment) {
-          //   break
-          // }
+        //   }
+        //   // const firstImgAttachment = imgAttachments?.[0]
+        //   // if (!firstImgAttachment) {
+        //   //   break
+        //   // }
 
-          break
-        }
+        //   break
+        // }
         case UITypes.SingleSelect: {
           debugger
-          alert('single select pdf export')
+          // alert('single select pdf export')
           debugger
-          docDefinitionContent.push({
-            qr: "FOO BAR",
-            eccLevel: 'M',
-            margin: 1,
-            version: 4,
-          });
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.Checkbox: {
+          debugger
+          // alert('checkbox pdf export')
+          debugger
+          docDefinitionContent.push(simpleValueRendering(cellValue))
           break
         }
         case UITypes.QrCode: {
@@ -328,8 +333,6 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
   }
   // })
 
-  console.log('docDefinitionContent', docDefinitionContent)
-
   const docDefinition: TDocumentDefinitions = {
     content: docDefinitionContent,
     // pageBreakBefore: function (currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
@@ -337,6 +340,8 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
     //   return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
     // }
   }
+
+  console.log('docDefinitionContent', docDefinitionContent)
 
   return docDefinition
 
