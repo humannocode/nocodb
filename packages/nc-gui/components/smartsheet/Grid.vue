@@ -133,18 +133,18 @@ const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
-const {
-  // showSystemFields,
-  sortedAndFilteredFields,
-  // fields,
-  filteredFieldList,
-  // filterQuery,
-  // showAll,
-  // hideAll,
-  // saveOrUpdate,
-  // metaColumnById,
-  // loadViewColumns,
-} = useViewColumns(view, meta)
+// const {
+//   // showSystemFields,
+//   sortedAndFilteredFields,
+//   // fields,
+//   filteredFieldList,
+//   // filterQuery,
+//   // showAll,
+//   // hideAll,
+//   // saveOrUpdate,
+//   // metaColumnById,
+//   // loadViewColumns,
+// } = useViewColumns(view, meta)
 
 const toDataURL = async (url: string): Promise<string> => {
   const xhr = new XMLHttpRequest()
@@ -217,14 +217,13 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
   //
   for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
     const row = selectedRows[rowIdx]
-
     console.log('FOO row', row)
     for (let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
-      console.log('FOO colIdx', colIdx)
+      // console.log('FOO colIdx', colIdx)
       const col = fieldsForPdf[colIdx]
       const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
-      console.log('FOO cellValue', cellValue)
+      // console.log('FOO cellValue', cellValue)
       docDefinitionContent.push({
         text: col.title || '',
         style: {
@@ -361,8 +360,10 @@ const onClickGeneratePdfForSelectedRows = async () => {
   const selectedRows = data.value.filter((row) => row.rowMeta.selected).map(row => row.row)
   console.log('FOO selectedRows', selectedRows)
 
-  const fieldsForPdf = sortedAndFilteredFields.value
-    ?.filter((col) => filteredFieldList.value.map((el) => el.title).includes(col.title || '')).map(col => col)
+  const fieldsForPdf = fields.value
+
+  // const fieldsForPdf = sortedAndFilteredFields.value
+  //   ?.filter((col) => filteredFieldList.value.map((el) => el.title).includes(col.title || '')).map(col => col)
   console.log('FOO fieldsForPdf', fieldsForPdf)
 
   if (selectedRows.length && fieldsForPdf?.length) {
