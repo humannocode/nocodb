@@ -194,7 +194,7 @@ const toDataURL = async (url: string): Promise<string> => {
 
 
 
-const simpleValueRendering = (cellValue: string) => ({
+const simpleValueRendering = (cellValue: string): Content => ({
   text: `${cellValue}`,
   style: {
     bold: false,
@@ -224,9 +224,6 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
       const col = fieldsForPdf[colIdx]
       const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
-      if (!cellValue) {
-        continue
-      }
       console.log('FOO cellValue', cellValue)
       docDefinitionContent.push({
         text: col.title || '',
@@ -238,7 +235,20 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         },
         pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
       })
-      
+
+      if (cellValue == null || cellValue === '') {
+        const nullPlaceholderContentConfig: Content = {
+          text: `[EMPTY]`,
+          style: {
+            bold: false,
+            italics: true,
+            fontSize: 10,
+            lineHeight: 2
+          }
+        }
+        docDefinitionContent.push(nullPlaceholderContentConfig)
+        continue
+      }
 
       switch (col.uidt) {
         // case UITypes.Attachment: {
