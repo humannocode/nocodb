@@ -206,10 +206,10 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
   // 2. The image config entries will still be created in order (and synchronously)
   // For linking them, an idea for an image key could be `${rowIdx}-${columnName}`
   //
-  for(let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
+  for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
     const row = selectedRows[rowIdx]
 
-    for(let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
+    for (let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
       const col = fieldsForPdf[colIdx]
       const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
@@ -230,28 +230,44 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
       switch (col.uidt) {
         case UITypes.Attachment: {
           const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
-          if(!imgAttachments?.length) {
+          if (!imgAttachments?.length) {
             break
           }
           console.log('imgAttachments', imgAttachments)
-          for(let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+          for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
             const imgAttachment = imgAttachments[imgAttachmentIdx]
             if (!imgAttachment) {
               continue
             }
             const imgDataUrl = await toDataURL(imgAttachment.url)
-            // console.log('FOO imgDataUrl', imgDataUrl)
+            console.log('FOO imgDataUrl', imgDataUrl)
+            // { qr: 'text in QR' },
+
             docDefinitionContent.push({
               image: imgDataUrl,
               width: 100,
-          })
-            
+            })
+
           }
           // const firstImgAttachment = imgAttachments?.[0]
           // if (!firstImgAttachment) {
           //   break
           // }
 
+          break
+        }
+        case UITypes.QrCode: {
+          docDefinitionContent.push({
+            qr: cellValue,
+            eccLevel: 'M',
+            margin: 1,
+            version: 4,
+            // -  errorCorrectionLevel: 'M',
+            // -  margin: 1,
+            // -  version: 4,
+            // -  rendererOpts: {
+            // -    quality: 1,
+          });
           break
         }
         default: {
@@ -266,7 +282,7 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           break
         }
       }
-    // })
+      // })
     }
 
   }
@@ -474,7 +490,7 @@ const {
             activeCell.col = 0
             resetSelectedRange()
             nextTick(() => {
-              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+              ; (document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
                 behavior: 'smooth',
               })
             })
@@ -942,18 +958,12 @@ const closeAddColumnDropdown = () => {
           <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr
-                  class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
-                  :data-testid="`grid-row-${rowIndex}`"
-                >
+                <tr class="nc-grid-row" :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :data-testid="`grid-row-${rowIndex}`">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
-                      <div
-                        v-if="!readOnly || !isLocked"
-                        class="nc-row-no text-xs text-gray-500"
-                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                      >
+                      <div v-if="!readOnly || !isLocked" class="nc-row-no text-xs text-gray-500"
+                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }">
                         {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
                       </div>
                       <div v-if="!readOnly" :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
@@ -989,42 +999,23 @@ const closeAddColumnDropdown = () => {
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
                       'align-top': rowHeight && rowHeight !== 1,
-                    }"
-                    :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                    :data-key="rowIndex + columnObj.id"
-                    :data-col="columnObj.id"
-                    :data-title="columnObj.title"
+                    }" :data-testid="`cell-${columnObj.title}-${rowIndex}`" :data-key="rowIndex + columnObj.id"
+                    :data-col="columnObj.id" :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                    @mouseover="handleMouseOver(rowIndex, colIndex)"
-                    @click="handleCellClick($event, rowIndex, colIndex)" @dblclick="makeEditable(row, columnObj)"
+                    @mouseover="handleMouseOver(rowIndex, colIndex)" @click="handleCellClick($event, rowIndex, colIndex)"
+                    @dblclick="makeEditable(row, columnObj)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })">
                     <div v-if="!switchingTab" class="w-full h-full">
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(columnObj)"
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :row="row"
-                        :read-only="readOnly"
-                        @navigate="onNavigate"
-                        @save="updateOrSaveRow(row, '', state)"
-                      />
+                      <LazySmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]"
+                        :column="columnObj" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :row="row" :read-only="readOnly" @navigate="onNavigate" @save="updateOrSaveRow(row, '', state)" />
 
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :edit-enabled="
-                          !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                        "
-                        :row-index="rowIndex"
-                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :read-only="readOnly"
-                        @update:edit-enabled="editEnabled = $event"
-                        @save="updateOrSaveRow(row, columnObj.title, state)"
-                        @navigate="onNavigate"
-                        @cancel="editEnabled = false"
-                      />
+                      <LazySmartsheetCell v-else v-model="row.row[columnObj.title]" :column="columnObj" :edit-enabled="
+                        !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                      " :row-index="rowIndex" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly" @update:edit-enabled="editEnabled = $event"
+                        @save="updateOrSaveRow(row, columnObj.title, state)" @navigate="onNavigate"
+                        @cancel="editEnabled = false" />
                     </div>
                   </SmartsheetTableDataCell>
                 </tr>
@@ -1111,7 +1102,7 @@ const closeAddColumnDropdown = () => {
         show-next-prev-icons @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)" />
     </Suspense>
-  </div>
+</div>
 </template>
 
 <style scoped lang="scss">
@@ -1130,7 +1121,7 @@ const closeAddColumnDropdown = () => {
     @apply bg-gray-100;
   }
 
-  td:not(:first-child) > div {
+  td:not(:first-child)>div {
     overflow: hidden;
     @apply flex px-1 h-auto;
   }
