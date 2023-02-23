@@ -194,6 +194,15 @@ const toDataURL = async (url: string): Promise<string> => {
 
 
 
+const simpleValueRendering = (cellValue: string) => ({
+  text: `${cellValue}`,
+  style: {
+    bold: false,
+    fontSize: 10,
+    lineHeight: 2
+  },
+})
+
 const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
 
   const docDefinitionContent: Content = []
@@ -222,7 +231,8 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         style: {
           bold: true,
           fontSize: 20,
-          lineHeight: 1
+          lineHeight: 1.2,
+          // marginBottom: 100,
         },
         pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
       })
@@ -262,17 +272,28 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             eccLevel: 'M',
             margin: 1,
             version: 4,
-            // -  errorCorrectionLevel: 'M',
-            // -  margin: 1,
-            // -  version: 4,
-            // -  rendererOpts: {
-            // -    quality: 1,
           });
+          break
+        }
+        case UITypes.Formula: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.LongText: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.Number: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
+          break
+        }
+        case UITypes.SingleLineText: {
+          docDefinitionContent.push(simpleValueRendering(cellValue))
           break
         }
         default: {
           docDefinitionContent.push({
-            text: `${cellValue}`,
+            text: `[PDF export for column type '${col.uidt}' not supported]`,
             style: {
               bold: false,
               fontSize: 10,
