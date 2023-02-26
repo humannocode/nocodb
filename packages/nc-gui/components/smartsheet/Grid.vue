@@ -180,15 +180,35 @@ const toDataURL = async (url: string): Promise<string> => {
 // };
 
 
+const marginBottomDefault = 20
 
 const simpleValueRendering = (cellValue: string): Content => ({
   text: `${cellValue}`,
+  marginBottom: marginBottomDefault,
   style: {
     bold: false,
     fontSize: 10,
-    lineHeight: 2
+    // lineHeight: 2, 
   },
 })
+
+const svgRulerLine = {
+  svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
+  // fit: [150, 100]
+  width: 300,
+  marginTop: 10,
+  marginBottom: 20,
+}
+const nullPlaceholderContentConfig: Content = {
+  text: `[EMPTY]`,
+  marginBottom: marginBottomDefault,
+  style: {
+    bold: false,
+    italics: true,
+    fontSize: 10,
+    // lineHeight: 2, 
+  }
+}
 
 const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
 
@@ -211,27 +231,23 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
       const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
       // console.log('FOO cellValue', cellValue)
+
+
+      if (colIdx === 0) {
+        docDefinitionContent.push(svgRulerLine)
+      }
       docDefinitionContent.push({
         text: col.title || '',
+        marginBottom: 7,
         style: {
           bold: true,
           fontSize: 20,
-          lineHeight: 1.2,
-          // marginBottom: 100,
+          // lineHeight: 1.2,
         },
         pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
       })
 
       if (cellValue == null || cellValue === '') {
-        const nullPlaceholderContentConfig: Content = {
-          text: `[EMPTY]`,
-          style: {
-            bold: false,
-            italics: true,
-            fontSize: 10,
-            lineHeight: 2
-          }
-        }
         docDefinitionContent.push(nullPlaceholderContentConfig)
       }
       else {
@@ -288,12 +304,22 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           }
           case UITypes.MultiSelect: {
             const multiSelectValuesAsListContentConfig: Content = {
-              ul: cellValue.split(',').map((multiSelectValue: string) => simpleValueRendering(multiSelectValue)),
-              style: {
-                bold: false,
-                fontSize: 10,
-                lineHeight: 2
-              }
+              ul: cellValue.split(',').map((multiSelectValue: string) => ({
+                text: `${multiSelectValue}`,
+                marginBottom: 3,
+                style: {
+                  bold: false,
+                  fontSize: 10,
+                  // lineHeight: 2, 
+                },
+              })),
+              // style: {
+              //   bold: false,
+              //   fontSize: 10,
+              marginBottom: marginBottomDefault,
+              // margin: 1,
+              // lineHeight: 2
+              // }
             }
             docDefinitionContent.push(multiSelectValuesAsListContentConfig)
             break
@@ -307,8 +333,9 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             docDefinitionContent.push({
               qr: cellValue,
               eccLevel: 'M',
-              margin: 1,
+              // margin: 1,
               version: 4,
+              marginBottom: marginBottomDefault,
             });
             break
           }
@@ -327,10 +354,11 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           default: {
             docDefinitionContent.push({
               text: `[PDF export for column type '${col.uidt}' not supported]`,
+              marginBottom: marginBottomDefault,
               style: {
                 bold: false,
                 fontSize: 10,
-                lineHeight: 2
+                // lineHeight: 2
               },
             })
             break
@@ -338,13 +366,8 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         }
       }
       if (colIdx === 0) {
-        docDefinitionContent.push({
-          svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
-          // fit: [150, 100]
-          width: 300,
-          marginTop: 10,
-          marginBottom: 20,
-        })
+        // alert('foo')
+        docDefinitionContent.push(svgRulerLine)
       }
     }
   }
