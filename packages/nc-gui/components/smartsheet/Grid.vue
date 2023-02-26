@@ -348,7 +348,18 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.Currency: {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
+            let formattedCurrency: string;
+            try {
+              formattedCurrency = !cellValue || isNaN(cellValue)
+                ? cellValue
+                : new Intl.NumberFormat(col?.meta?.currency_locale || 'en-US', {
+                  style: 'currency',
+                  currency: col?.meta?.currency_code || 'USD',
+                }).format(cellValue)
+            } catch (e) {
+              formattedCurrency = cellValue
+            }
+            docDefinitionContent.push(simpleValueRendering(formattedCurrency))
             break
           }
           case UITypes.Percent: {
