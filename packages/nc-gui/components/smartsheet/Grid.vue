@@ -192,13 +192,13 @@ const simpleValueRendering = (cellValue: string): Content => ({
   },
 })
 
-const svgRulerLine = {
-  svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
-  // fit: [150, 100]
-  width: 300,
-  marginTop: 10,
-  marginBottom: 20,
-}
+// const svgRulerLine = {
+//   svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
+//   // fit: [150, 100]
+//   width: 300,
+//   marginTop: 10,
+//   marginBottom: 20,
+// }
 const nullPlaceholderContentConfig: Content = {
   text: `[EMPTY]`,
   marginBottom: marginBottomDefault,
@@ -233,12 +233,13 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
       // console.log('FOO cellValue', cellValue)
 
 
-      if (colIdx === 0) {
-        docDefinitionContent.push(svgRulerLine)
-      }
+      // if (colIdx === 0) {
+      //   docDefinitionContent.push(svgRulerLine)
+      // }
       docDefinitionContent.push({
         text: col.title || '',
         marginBottom: 7,
+        decoration: (colIdx === 0) ? 'underline' : undefined,
         style: {
           bold: true,
           fontSize: 20,
@@ -365,10 +366,10 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           }
         }
       }
-      if (colIdx === 0) {
-        // alert('foo')
-        docDefinitionContent.push(svgRulerLine)
-      }
+      // if (colIdx === 0) {
+      //   // alert('foo')
+      //   docDefinitionContent.push(svgRulerLine)
+      // }
     }
   }
 
