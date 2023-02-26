@@ -420,7 +420,26 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.LinkToAnotherRecord: {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
+            console.log('bar LinkToAnotherRecord - cellValue', cellValue)
+            console.log('bar LinkToAnotherRecord - col', col)
+            let contentDefinitionForCell: Content;
+            if (Array.isArray(cellValue)) {
+              // formattedCellVaue = cellValue.map((linkToAnotherRecordValue: any) => `${linkToAnotherRecordValue.Title} (${linkToAnotherRecordValue.Id})`).join(', ')
+              contentDefinitionForCell = {
+              ul: cellValue.map((ltarEntry) => ({
+                text: `${ltarEntry.Title} (${ltarEntry.Id})`,
+                marginBottom: 3,
+                style: {
+                  bold: false,
+                  fontSize: 10,
+                },
+              })),
+              marginBottom: marginBottomDefault,
+            }
+            } else {
+              contentDefinitionForCell = simpleValueRendering(`${cellValue.Title} (${cellValue.Id})`)
+            }
+            docDefinitionContent.push(contentDefinitionForCell)
             break
           }
           case UITypes.Rollup: {
