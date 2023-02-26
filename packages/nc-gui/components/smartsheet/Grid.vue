@@ -26,7 +26,6 @@ import {
   inject,
   isColumnRequiredAndNull,
   isDrawerOrModalExist,
-  isImage,
   isMac,
   message,
   onBeforeUnmount,

@@ -7,23 +7,6 @@ import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
 import { useAttachment, useI18n } from '#imports'
 ;(<any>pdfMake).vfs = pdfFonts.pdfMake.vfs
 
-// const toDataURL = async (url: string): Promise<string> => {
-//   const xhr = new XMLHttpRequest()
-//   xhr.open('GET', url)
-//   xhr.responseType = 'blob'
-//   xhr.send()
-
-//   return new Promise((resolve, _reject) => {
-//     xhr.onload = function () {
-//       const reader = new FileReader()
-//       reader.onloadend = function () {
-//         resolve(reader.result?.toString() || '')
-//       }
-//       reader.readAsDataURL(xhr.response)
-//     }
-//   })
-// }
-
 export function usePdfExport() {
   const { t } = useI18n()
   const { getAttachmentSrc } = useAttachment()
@@ -44,7 +27,6 @@ export function usePdfExport() {
   })
 
   const getContentDefinitionForColumn = async (col: ColumnType, cellValue: any) => {
-    console.log('FOO getContentDefinitionForColumn - col', col)
     switch (col.uidt) {
       case UITypes.SingleLineText: {
         return simpleValueRendering(cellValue)
@@ -55,42 +37,6 @@ export function usePdfExport() {
       case UITypes.Number: {
         return simpleValueRendering(cellValue)
       }
-
-      // case UITypes.Attachment: {
-      //   const imageList: Content[] = []
-      //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
-      //   if (imgAttachments?.length > 0) {
-      //     console.log('imgAttachments', imgAttachments)
-      //     for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
-      //       const imgAttachment = imgAttachments[imgAttachmentIdx]
-      //       console.log('foobar imgAttachment', imgAttachment)
-      //       if (!imgAttachment) {
-      //         continue
-      //       }
-
-      //       const FOO = await getAttachmentSrc(imgAttachment)
-      //       // const imgDataUrl = await toDataURL(imgAttachment.url)
-      //       imageList.push({
-      //         // image: imgDataUrl,
-      //         // text: imgAttachment.url,
-      //         // text: FOO,
-      //         image: FOO,
-      //         marginBottom: 3,
-      //         style: {
-      //           bold: false,
-      //           fontSize: 10,
-      //         },
-      //         // width: 100,
-      //       })
-      //       // console.log('FOO imgDataUrl', imgDataUrl)
-      //       // { qr: 'text in QR' },
-      //     }
-      //   }
-      //   return {
-      //     ul: imageList,
-      //     marginBottom: marginBottomDefault,
-      //   } as Content
-      // }
       case UITypes.SingleSelect: {
         return simpleValueRendering(cellValue)
       }
@@ -160,14 +106,6 @@ export function usePdfExport() {
         return simpleValueRendering(`${cellValue}%`)
       }
       case UITypes.Duration: {
-        // const duration = dayjs.duration(parseInt(cellValue), 'seconds')
-        // const days = duration.days().toString().padStart(2, '0');
-        // const hours = duration.hours().toString().padStart(2, '0');
-        // const minutes = duration.minutes().toString().padStart(2, '0');
-        // const seconds = duration.seconds().toString().padStart(2, '0');
-
-        // const formatedDuration = `${days}:${hours}:${minutes}:${seconds} (DD:HH:MM:SS))`;
-        // const formatedDuration = `${duration.format('hh:mm:ss')} (hh:mm:ss))`
         const durationOptionId = col.meta?.duration
         const formatedDuration = convertMS2Duration(parseInt(cellValue), durationOptionId)
 
@@ -255,43 +193,6 @@ export function usePdfExport() {
     }
   }
 
-  // const FOO_IMG_URL = 'https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0'
-  // const FOO_IMG_DATA_URL: string = await toDataURL(FOO_IMG_URL)
-  // console.log('FOO', FOO_IMG_DATA_URL)
-
-  // var docDefinition: TDocumentDefinitions = {
-  //   content: [
-  //     // if you don't need styles, you can use a simple string to define a paragraph
-  //     'This is a standard paragraph, using default style',
-
-  //     // using a { text: '...' } object lets you set styling properties
-  //     { text: 'This paragraph will have a bigger font', fontSize: 15 },
-
-  //     // if you set the value of text to an array instead of a string, you'll be able
-  //     // to style any part individually
-  //     {
-  //       text: [
-  //         'This paragraph is defined as an array of elements to make it possible to ',
-  //         { text: 'restyle part of it and make it bigger ', fontSize: 15 },
-  //         'than the rest.'
-  //       ]
-  //     },
-  //     {
-  //       image: FOO_IMG_DATA_URL,
-  //       width: 100,
-  //       height: 100,
-  //     }
-  //   ]
-  // };
-
-  // const svgRulerLine = {
-  //   svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
-  //   // fit: [150, 100]
-  //   width: 300,
-  //   marginTop: 10,
-  //   marginBottom: 20,
-  // }
-
   const getContentDefinitionAndImageDictionaryForAttachmentColumn = async (
     col: ColumnType,
     cellValue: any,
@@ -301,32 +202,30 @@ export function usePdfExport() {
     const imageDictionaryEntries: { [key: string]: string } = {}
     const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
     if (imgAttachments?.length > 0) {
-      console.log('imgAttachments', imgAttachments)
       for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
         const imgAttachment = imgAttachments[imgAttachmentIdx]
-        console.log('foobar imgAttachment', imgAttachment)
         if (!imgAttachment) {
           continue
         }
         const FOO = await getAttachmentSrc(imgAttachment)
         const imageDictionaryKey = `${imageDictionaryKeyPrefix}_${imgAttachmentIdx}`
         imageDictionaryEntries[imageDictionaryKey] = FOO
-        // const imgDataUrl = await toDataURL(imgAttachment.url)
-        imageContentDefinitionList.push({
-          // image: imgDataUrl,
-          // text: imgAttachment.url,
-          // text: FOO,
-          image: imageDictionaryKey,
-          marginBottom: 3,
-          style: {
-            bold: false,
-            fontSize: 10,
+        imageContentDefinitionList.push(
+          {
+            text: imgAttachment.title || FOO,
+            link: FOO,
+            marginBottom: 10,
+            style: {
+              bold: false,
+              fontSize: 10,
+            },
           },
-          // width: 200,
-          height: 200,
-        })
-        // console.log('FOO imgDataUrl', imgDataUrl)
-        // { qr: 'text in QR' },
+          {
+            image: imageDictionaryKey,
+            marginBottom: 10,
+            width: 100,
+          },
+        )
       }
     }
     return [
@@ -341,15 +240,6 @@ export function usePdfExport() {
   const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
     const docDefinitionContent: Content = []
 
-    // TODO: to make the image to data url processing (which also includes downloading images) in parallel:
-    // use a promise/await approach here
-    // But to respect the order of images/attachments/qr codes etc:
-    // 1. Extract the images out int keyed/named images array (PdfMake.js supports this)
-    // and do the processing with Promise.all, map and async/await
-    // 2. The image config entries will still be created in order (and synchronously)
-    // For linking them, an idea for an image key could be `${rowIdx}-${columnName}`
-    //
-
     let imagesDictionary: { [key: string]: string } = {}
 
     for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
@@ -358,9 +248,6 @@ export function usePdfExport() {
         const col = fieldsForPdf[colIdx]
         const cellValue = row[col.title!]
 
-        // if (colIdx === 0) {
-        //   docDefinitionContent.push(svgRulerLine)
-        // }
         docDefinitionContent.push({
           text: col.title || '',
           marginBottom: 7,
@@ -389,22 +276,16 @@ export function usePdfExport() {
           } else {
             contentDefinitionForCell = await getContentDefinitionForColumn(col, cellValue)
           }
-          console.log('BARFOO contentDefinitionForCell', contentDefinitionForCell)
-          // if(contentDefinitionForCell)
           docDefinitionContent.push(contentDefinitionForCell)
         }
       }
     }
-
-    console.log('FOOBAR imagesDictionary', imagesDictionary)
 
     const docDefinition: TDocumentDefinitions = {
       // content: docDefinitionContent,
       content: [...docDefinitionContent],
       images: imagesDictionary,
     }
-    console.log('FOOBAR docDefinition', docDefinition)
-
     return docDefinition
   }
 
