@@ -34,7 +34,16 @@ export function usePdfExport() {
       case UITypes.LongText: {
         return simpleValueRendering(cellValue)
       }
+      case UITypes.ID: {
+        return simpleValueRendering(cellValue)
+      }
+      case UITypes.AutoNumber: {
+        return simpleValueRendering(cellValue)
+      }
       case UITypes.Number: {
+        return simpleValueRendering(cellValue)
+      }
+      case UITypes.ForeignKey: {
         return simpleValueRendering(cellValue)
       }
       case UITypes.SingleSelect: {
@@ -207,13 +216,13 @@ export function usePdfExport() {
         if (!imgAttachment) {
           continue
         }
-        const FOO = await getAttachmentSrc(imgAttachment)
+        const imageSrc = await getAttachmentSrc(imgAttachment)
         const imageDictionaryKey = `${imageDictionaryKeyPrefix}_${imgAttachmentIdx}`
-        imageDictionaryEntries[imageDictionaryKey] = FOO
+        imageDictionaryEntries[imageDictionaryKey] = imageSrc
         imageContentDefinitionList.push(
           {
-            text: imgAttachment.title || FOO,
-            link: FOO,
+            text: imgAttachment.title || imageSrc,
+            link: imageSrc,
             marginBottom: 10,
             style: {
               bold: false,
