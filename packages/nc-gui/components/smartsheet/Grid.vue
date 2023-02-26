@@ -53,6 +53,7 @@ import type { Row } from '~/lib'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
+import dayjs from 'dayjs';
 
 (<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
 
@@ -182,13 +183,17 @@ const toDataURL = async (url: string): Promise<string> => {
 
 const marginBottomDefault = 20
 
-const simpleValueRendering = (cellValue: string): Content => ({
-  text: `${cellValue}`,
+const defaultValueStyle = {
   marginBottom: marginBottomDefault,
   style: {
     bold: false,
     fontSize: 10,
-  },
+  }
+};
+
+const simpleValueRendering = (cellValue: string): Content => ({
+  text: `${cellValue}`,
+  ...defaultValueStyle,
 })
 
 // const svgRulerLine = {
@@ -324,6 +329,94 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           }
           case UITypes.DateTime: {
             docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Year: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Time: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.PhoneNumber: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Decimal: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Currency: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Percent: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Duration: {
+            // const duration = dayjs.duration(parseInt(cellValue), 'seconds')
+            // const days = duration.days().toString().padStart(2, '0');
+            // const hours = duration.hours().toString().padStart(2, '0');
+            // const minutes = duration.minutes().toString().padStart(2, '0');
+            // const seconds = duration.seconds().toString().padStart(2, '0');
+
+            // const formatedDuration = `${days}:${hours}:${minutes}:${seconds} (DD:HH:MM:SS))`;
+            // const formatedDuration = `${duration.format('hh:mm:ss')} (hh:mm:ss))`
+            const durationOptionId = col.meta?.duration
+            const formatedDuration = convertMS2Duration(parseInt(cellValue), durationOptionId)
+            console.log('BAR col', col)
+
+            docDefinitionContent.push(simpleValueRendering(`${formatedDuration} (${durationOptions[durationOptionId].title})`))
+            break
+          }
+          case UITypes.Rating: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.GeoData: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Geometry: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.JSON: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.SpecificDBType: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Lookup: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.LinkToAnotherRecord: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Rollup: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Email: {
+            docDefinitionContent.push({
+              text: cellValue,
+              link: cellValue,
+              ...defaultValueStyle,
+            })
+            break
+          }
+          case UITypes.URL: {
+            docDefinitionContent.push({
+              text: cellValue,
+              link: cellValue,
+              ...defaultValueStyle,
+            })
             break
           }
           default: {
