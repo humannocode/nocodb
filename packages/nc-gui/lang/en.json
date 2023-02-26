@@ -396,6 +396,7 @@
     "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "generatePdfForSelectedRows": "Generate PDF for Selected Rows",
+    "exportToPdf": "Export to PDF",
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Download as CSV",

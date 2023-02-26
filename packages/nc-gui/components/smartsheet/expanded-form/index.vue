@@ -42,6 +42,8 @@ const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const { t } = useI18n()
 
+const { exportPdfForRowsAndColumns } = usePdfExport()
+
 const row = ref(props.row)
 
 const state = toRef(props, 'state')
@@ -152,6 +154,10 @@ const cellWrapperEl = ref<HTMLElement>()
 onMounted(() => {
   setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
+
+const onExportToPdf = async () => {
+  await exportPdfForRowsAndColumns([row.value.row], meta.value.columns || [], 'FOOBAR.pdf')
+}
 </script>
 
 <script lang="ts">
@@ -170,7 +176,12 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
+    <SmartsheetExpandedFormHeader
+      :view="props.view"
+      @cancel="onClose"
+      @duplicate-row="onDuplicateRow"
+      @export-to-pdf="onExportToPdf"
+    />
 
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
