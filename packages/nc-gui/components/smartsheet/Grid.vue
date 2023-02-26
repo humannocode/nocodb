@@ -352,7 +352,7 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.Percent: {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
+            docDefinitionContent.push(simpleValueRendering(`${cellValue}%`))
             break
           }
           case UITypes.Duration: {
@@ -393,7 +393,19 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.Lookup: {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
+            const lookupEntriesAsListContentConfig: Content = {
+              ul: cellValue.map((lookupEntryValue: string) => ({
+                text: `${lookupEntryValue}`,
+                marginBottom: 3,
+                style: {
+                  bold: false,
+                  fontSize: 10,
+                },
+              })),
+              marginBottom: marginBottomDefault,
+            }
+            docDefinitionContent.push(lookupEntriesAsListContentConfig)
+            // docDefinitionContent.push(simpleValueRendering(cellValue))
             break
           }
           case UITypes.LinkToAnotherRecord: {
