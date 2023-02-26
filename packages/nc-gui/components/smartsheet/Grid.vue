@@ -188,7 +188,6 @@ const simpleValueRendering = (cellValue: string): Content => ({
   style: {
     bold: false,
     fontSize: 10,
-    // lineHeight: 2, 
   },
 })
 
@@ -199,16 +198,6 @@ const simpleValueRendering = (cellValue: string): Content => ({
 //   marginTop: 10,
 //   marginBottom: 20,
 // }
-const nullPlaceholderContentConfig: Content = {
-  text: `[EMPTY]`,
-  marginBottom: marginBottomDefault,
-  style: {
-    bold: false,
-    italics: true,
-    fontSize: 10,
-    // lineHeight: 2, 
-  }
-}
 
 const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
 
@@ -224,14 +213,9 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
   //
   for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
     const row = selectedRows[rowIdx]
-    console.log('FOO row', row)
     for (let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
-      // console.log('FOO colIdx', colIdx)
       const col = fieldsForPdf[colIdx]
-      const yPos = 10 + colIdx * 60
       const cellValue = row[col.title!]
-      // console.log('FOO cellValue', cellValue)
-
 
       // if (colIdx === 0) {
       //   docDefinitionContent.push(svgRulerLine)
@@ -243,13 +227,18 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
         style: {
           bold: true,
           fontSize: 20,
-          // lineHeight: 1.2,
         },
         pageBreak: (colIdx === 0 && (rowIdx !== 0)) ? 'before' : undefined,
       })
 
       if (cellValue == null || cellValue === '') {
-        docDefinitionContent.push(nullPlaceholderContentConfig)
+        docDefinitionContent.push(
+          {
+            text: `[EMPTY]`,
+            italics: true,
+            marginBottom: marginBottomDefault,
+          }
+        )
       }
       else {
         switch (col.uidt) {
@@ -258,14 +247,7 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.LongText: {
-            console.log('in case for LongText with cellValue: ', cellValue)
-            try {
-              docDefinitionContent.push(simpleValueRendering(cellValue))
-            }
-            catch (e) {
-              console.log('catch in LongText:', e)
-            }
-            break
+            docDefinitionContent.push(simpleValueRendering(cellValue))
           }
           case UITypes.Number: {
             docDefinitionContent.push(simpleValueRendering(cellValue))
@@ -311,16 +293,9 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
                 style: {
                   bold: false,
                   fontSize: 10,
-                  // lineHeight: 2, 
                 },
               })),
-              // style: {
-              //   bold: false,
-              //   fontSize: 10,
               marginBottom: marginBottomDefault,
-              // margin: 1,
-              // lineHeight: 2
-              // }
             }
             docDefinitionContent.push(multiSelectValuesAsListContentConfig)
             break
@@ -334,7 +309,6 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             docDefinitionContent.push({
               qr: cellValue,
               eccLevel: 'M',
-              // margin: 1,
               version: 4,
               marginBottom: marginBottomDefault,
             });
@@ -359,7 +333,6 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
               style: {
                 bold: false,
                 fontSize: 10,
-                // lineHeight: 2
               },
             })
             break
@@ -375,26 +348,24 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
 
   const docDefinition: TDocumentDefinitions = {
     content: docDefinitionContent,
-    header: function (currentPage, pageCount, pageSize) {
-      // you can apply any logic and return any valid pdfmake element
+    // header: function (currentPage, pageCount, pageSize) {
+    //   // you can apply any logic and return any valid pdfmake element
 
-      return [
-        {
-          text: 'Table Name // 142 Rows exported',
-          // alignment: (currentPage % 2) ? 'left' : 'right', 
-          marginTop: 10,
-          marginLeft: 10,
-        },
-        // { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40, color: '#abcdef' }] }
-      ]
-    },
+    //   return [
+    //     {
+    //       text: 'Table Name // 142 Rows exported',
+    //       // alignment: (currentPage % 2) ? 'left' : 'right', 
+    //       marginTop: 10,
+    //       marginLeft: 10,
+    //     },
+    //     // { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40, color: '#abcdef' }] }
+    //   ]
+    // },
     // pageBreakBefore: function (currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
     //   currentNode.
     //   return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
     // }
   }
-
-  console.log('docDefinitionContent', docDefinitionContent)
 
   return docDefinition
 
@@ -402,25 +373,10 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
 
 const onClickGeneratePdfForSelectedRows = async () => {
   const selectedRows = data.value.filter((row) => row.rowMeta.selected).map(row => row.row)
-  console.log('FOO selectedRows', selectedRows)
-
   const fieldsForPdf = fields.value
 
-  // const fieldsForPdf = sortedAndFilteredFields.value
-  //   ?.filter((col) => filteredFieldList.value.map((el) => el.title).includes(col.title || '')).map(col => col)
-  console.log('FOO fieldsForPdf', fieldsForPdf)
-
   if (selectedRows.length && fieldsForPdf?.length) {
-
-
-    // alert(JSON.stringify(selectedRows))
-    // alert(JSON.stringify(fieldsForPdf))
-    // console.log(JSON.stringify(filteredFieldList.value))
-
-
     const docDefinition = await getDocDefinitionForSelectedRows(selectedRows, fieldsForPdf)
-    console.log('FOO docDefinition', docDefinition)
-
     const pdfFileName = `${meta.value?.title || 'table'}_${view.value?.title || 'view'}__${selectedRows.length}_rows__.pdf`
     pdfMake.createPdf(docDefinition).download(pdfFileName);
 
