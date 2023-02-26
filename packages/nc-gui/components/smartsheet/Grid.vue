@@ -372,7 +372,8 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
             break
           }
           case UITypes.Rating: {
-            docDefinitionContent.push(simpleValueRendering(cellValue))
+            const ratingValueAsStars = `${cellValue} (out of ${col?.meta?.max || 5})`
+            docDefinitionContent.push(simpleValueRendering(ratingValueAsStars))
             break
           }
           case UITypes.GeoData: {
