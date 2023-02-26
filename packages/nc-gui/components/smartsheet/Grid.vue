@@ -233,118 +233,137 @@ const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>
           }
         }
         docDefinitionContent.push(nullPlaceholderContentConfig)
-        continue
       }
-
-      switch (col.uidt) {
-        case UITypes.SingleLineText: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        case UITypes.LongText: {
-          console.log('in case for LongText with cellValue: ', cellValue)
-          try {
+      else {
+        switch (col.uidt) {
+          case UITypes.SingleLineText: {
             docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
           }
-          catch (e) {
-            console.log('catch in LongText:', e)
-          }
-          break
-        }
-        case UITypes.Number: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        // case UITypes.Attachment: {
-        //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
-        //   if (!imgAttachments?.length) {
-        //     break
-        //   }
-        //   console.log('imgAttachments', imgAttachments)
-        //   for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
-        //     const imgAttachment = imgAttachments[imgAttachmentIdx]
-        //     if (!imgAttachment) {
-        //       continue
-        //     }
-        //     const imgDataUrl = await toDataURL(imgAttachment.url)
-        //     console.log('FOO imgDataUrl', imgDataUrl)
-        //     // { qr: 'text in QR' },
-
-        //     docDefinitionContent.push({
-        //       image: imgDataUrl,
-        //       width: 100,
-        //     })
-
-        //   }
-        //   // const firstImgAttachment = imgAttachments?.[0]
-        //   // if (!firstImgAttachment) {
-        //   //   break
-        //   // }
-
-        //   break
-        // }
-        case UITypes.SingleSelect: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        case UITypes.MultiSelect: {
-          const multiSelectValuesAsListContentConfig: Content = {
-            ul: cellValue.split(',').map((multiSelectValue: string) => simpleValueRendering(multiSelectValue)),
-            style: {
-              bold: false,
-              fontSize: 10,
-              lineHeight: 2
+          case UITypes.LongText: {
+            console.log('in case for LongText with cellValue: ', cellValue)
+            try {
+              docDefinitionContent.push(simpleValueRendering(cellValue))
             }
+            catch (e) {
+              console.log('catch in LongText:', e)
+            }
+            break
           }
-          docDefinitionContent.push(multiSelectValuesAsListContentConfig)
-          break
-        }
-        case UITypes.Checkbox: {
-          const checkboxValueAsYesOrNo = cellValue ? 'Yes' : 'No'
-          docDefinitionContent.push(simpleValueRendering(checkboxValueAsYesOrNo))
-          break
-        }
-        case UITypes.QrCode: {
-          docDefinitionContent.push({
-            qr: cellValue,
-            eccLevel: 'M',
-            margin: 1,
-            version: 4,
-          });
-          break
-        }
-        case UITypes.Formula: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        case UITypes.Date: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        case UITypes.DateTime: {
-          docDefinitionContent.push(simpleValueRendering(cellValue))
-          break
-        }
-        default: {
-          docDefinitionContent.push({
-            text: `[PDF export for column type '${col.uidt}' not supported]`,
-            style: {
-              bold: false,
-              fontSize: 10,
-              lineHeight: 2
-            },
-          })
-          break
+          case UITypes.Number: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          // case UITypes.Attachment: {
+          //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
+          //   if (!imgAttachments?.length) {
+          //     break
+          //   }
+          //   console.log('imgAttachments', imgAttachments)
+          //   for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+          //     const imgAttachment = imgAttachments[imgAttachmentIdx]
+          //     if (!imgAttachment) {
+          //       continue
+          //     }
+          //     const imgDataUrl = await toDataURL(imgAttachment.url)
+          //     console.log('FOO imgDataUrl', imgDataUrl)
+          //     // { qr: 'text in QR' },
+
+          //     docDefinitionContent.push({
+          //       image: imgDataUrl,
+          //       width: 100,
+          //     })
+
+          //   }
+          //   // const firstImgAttachment = imgAttachments?.[0]
+          //   // if (!firstImgAttachment) {
+          //   //   break
+          //   // }
+
+          //   break
+          // }
+          case UITypes.SingleSelect: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.MultiSelect: {
+            const multiSelectValuesAsListContentConfig: Content = {
+              ul: cellValue.split(',').map((multiSelectValue: string) => simpleValueRendering(multiSelectValue)),
+              style: {
+                bold: false,
+                fontSize: 10,
+                lineHeight: 2
+              }
+            }
+            docDefinitionContent.push(multiSelectValuesAsListContentConfig)
+            break
+          }
+          case UITypes.Checkbox: {
+            const checkboxValueAsYesOrNo = cellValue ? 'Yes' : 'No'
+            docDefinitionContent.push(simpleValueRendering(checkboxValueAsYesOrNo))
+            break
+          }
+          case UITypes.QrCode: {
+            docDefinitionContent.push({
+              qr: cellValue,
+              eccLevel: 'M',
+              margin: 1,
+              version: 4,
+            });
+            break
+          }
+          case UITypes.Formula: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.Date: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          case UITypes.DateTime: {
+            docDefinitionContent.push(simpleValueRendering(cellValue))
+            break
+          }
+          default: {
+            docDefinitionContent.push({
+              text: `[PDF export for column type '${col.uidt}' not supported]`,
+              style: {
+                bold: false,
+                fontSize: 10,
+                lineHeight: 2
+              },
+            })
+            break
+          }
         }
       }
-      // })
+      if (colIdx === 0) {
+        docDefinitionContent.push({
+          svg: '<svg width="300" height="5" viewBox="0 0 300 5"><line x1="0" x2="100%" stroke="black" stroke-width="2" /></svg>',
+          // fit: [150, 100]
+          width: 300,
+          marginTop: 10,
+          marginBottom: 20,
+        })
+      }
     }
-
   }
-  // })
 
   const docDefinition: TDocumentDefinitions = {
     content: docDefinitionContent,
+    header: function (currentPage, pageCount, pageSize) {
+      // you can apply any logic and return any valid pdfmake element
+
+      return [
+        {
+          text: 'Table Name // 142 Rows exported',
+          // alignment: (currentPage % 2) ? 'left' : 'right', 
+          marginTop: 10,
+          marginLeft: 10,
+        },
+        // { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40, color: '#abcdef' }] }
+      ]
+    },
     // pageBreakBefore: function (currentNode, followingNodesOnPage, nodesOnNextPage, previousNodesOnPage) {
     //   currentNode.
     //   return currentNode.headlineLevel === 1 && followingNodesOnPage.length === 0;
@@ -1159,7 +1178,7 @@ const closeAddColumnDropdown = () => {
         show-next-prev-icons @next="navigateToSiblingRow(NavigateDir.NEXT)"
         @prev="navigateToSiblingRow(NavigateDir.PREV)" />
     </Suspense>
-</div>
+  </div>
 </template>
 
 <style scoped lang="scss">
