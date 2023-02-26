@@ -4,11 +4,29 @@ import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
 
-import { useI18n } from '#imports'
+import { useAttachment, useI18n } from '#imports'
 ;(<any>pdfMake).vfs = pdfFonts.pdfMake.vfs
+
+// const toDataURL = async (url: string): Promise<string> => {
+//   const xhr = new XMLHttpRequest()
+//   xhr.open('GET', url)
+//   xhr.responseType = 'blob'
+//   xhr.send()
+
+//   return new Promise((resolve, _reject) => {
+//     xhr.onload = function () {
+//       const reader = new FileReader()
+//       reader.onloadend = function () {
+//         resolve(reader.result?.toString() || '')
+//       }
+//       reader.readAsDataURL(xhr.response)
+//     }
+//   })
+// }
 
 export function usePdfExport() {
   const { t } = useI18n()
+  const { getAttachmentSrc } = useAttachment()
 
   const marginBottomDefault = 20
 
@@ -25,7 +43,7 @@ export function usePdfExport() {
     ...defaultValueStyle,
   })
 
-  const getContentDefinitionForColumn = (col: ColumnType, cellValue: any) => {
+  const getContentDefinitionForColumn = async (col: ColumnType, cellValue: any) => {
     console.log('FOO getContentDefinitionForColumn - col', col)
     switch (col.uidt) {
       case UITypes.SingleLineText: {
@@ -37,33 +55,41 @@ export function usePdfExport() {
       case UITypes.Number: {
         return simpleValueRendering(cellValue)
       }
+
       // case UITypes.Attachment: {
+      //   const imageList: Content[] = []
       //   const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
-      //   if (!imgAttachments?.length) {
-      //     break
-      //   }
-      //   console.log('imgAttachments', imgAttachments)
-      //   for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
-      //     const imgAttachment = imgAttachments[imgAttachmentIdx]
-      //     if (!imgAttachment) {
-      //       continue
+      //   if (imgAttachments?.length > 0) {
+      //     console.log('imgAttachments', imgAttachments)
+      //     for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+      //       const imgAttachment = imgAttachments[imgAttachmentIdx]
+      //       console.log('foobar imgAttachment', imgAttachment)
+      //       if (!imgAttachment) {
+      //         continue
+      //       }
+
+      //       const FOO = await getAttachmentSrc(imgAttachment)
+      //       // const imgDataUrl = await toDataURL(imgAttachment.url)
+      //       imageList.push({
+      //         // image: imgDataUrl,
+      //         // text: imgAttachment.url,
+      //         // text: FOO,
+      //         image: FOO,
+      //         marginBottom: 3,
+      //         style: {
+      //           bold: false,
+      //           fontSize: 10,
+      //         },
+      //         // width: 100,
+      //       })
+      //       // console.log('FOO imgDataUrl', imgDataUrl)
+      //       // { qr: 'text in QR' },
       //     }
-      //     const imgDataUrl = await toDataURL(imgAttachment.url)
-      //     console.log('FOO imgDataUrl', imgDataUrl)
-      //     // { qr: 'text in QR' },
-
-      //     docDefinitionContent.push({
-      //       image: imgDataUrl,
-      //       width: 100,
-      //     })
-
       //   }
-      //   // const firstImgAttachment = imgAttachments?.[0]
-      //   // if (!firstImgAttachment) {
-      //   //   break
-      //   // }
-
-      //   break
+      //   return {
+      //     ul: imageList,
+      //     marginBottom: marginBottomDefault,
+      //   } as Content
       // }
       case UITypes.SingleSelect: {
         return simpleValueRendering(cellValue)
@@ -229,23 +255,6 @@ export function usePdfExport() {
     }
   }
 
-  // const toDataURL = async (url: string): Promise<string> => {
-  //   const xhr = new XMLHttpRequest()
-  //   xhr.open('GET', url)
-  //   xhr.responseType = 'blob'
-  //   xhr.send()
-
-  //   return new Promise((resolve, _reject) => {
-  //     xhr.onload = function () {
-  //       const reader = new FileReader()
-  //       reader.onloadend = function () {
-  //         resolve(reader.result?.toString() || '')
-  //       }
-  //       reader.readAsDataURL(xhr.response)
-  //     }
-  //   })
-  // }
-
   // const FOO_IMG_URL = 'https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0'
   // const FOO_IMG_DATA_URL: string = await toDataURL(FOO_IMG_URL)
   // console.log('FOO', FOO_IMG_DATA_URL)
@@ -283,6 +292,52 @@ export function usePdfExport() {
   //   marginBottom: 20,
   // }
 
+  const getContentDefinitionAndImageDictionaryForAttachmentColumn = async (
+    col: ColumnType,
+    cellValue: any,
+    imageDictionaryKeyPrefix: string,
+  ): Promise<[Content, { [key: string]: string }]> => {
+    const imageContentDefinitionList: Content[] = []
+    const imageDictionaryEntries: { [key: string]: string } = {}
+    const imgAttachments = cellValue?.filter?.((attObj: any) => isImage(attObj.attObj, attObj.mimetype))
+    if (imgAttachments?.length > 0) {
+      console.log('imgAttachments', imgAttachments)
+      for (let imgAttachmentIdx = 0; imgAttachmentIdx < imgAttachments.length; imgAttachmentIdx++) {
+        const imgAttachment = imgAttachments[imgAttachmentIdx]
+        console.log('foobar imgAttachment', imgAttachment)
+        if (!imgAttachment) {
+          continue
+        }
+        const FOO = await getAttachmentSrc(imgAttachment)
+        const imageDictionaryKey = `${imageDictionaryKeyPrefix}_${imgAttachmentIdx}`
+        imageDictionaryEntries[imageDictionaryKey] = FOO
+        // const imgDataUrl = await toDataURL(imgAttachment.url)
+        imageContentDefinitionList.push({
+          // image: imgDataUrl,
+          // text: imgAttachment.url,
+          // text: FOO,
+          image: imageDictionaryKey,
+          marginBottom: 3,
+          style: {
+            bold: false,
+            fontSize: 10,
+          },
+          // width: 200,
+          height: 200,
+        })
+        // console.log('FOO imgDataUrl', imgDataUrl)
+        // { qr: 'text in QR' },
+      }
+    }
+    return [
+      {
+        ul: imageContentDefinitionList,
+        marginBottom: marginBottomDefault,
+      } as Content,
+      imageDictionaryEntries,
+    ]
+  }
+
   const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
     const docDefinitionContent: Content = []
 
@@ -294,6 +349,9 @@ export function usePdfExport() {
     // 2. The image config entries will still be created in order (and synchronously)
     // For linking them, an idea for an image key could be `${rowIdx}-${columnName}`
     //
+
+    let imagesDictionary: { [key: string]: string } = {}
+
     for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
       const row = selectedRows[rowIdx]
       for (let colIdx = 0; colIdx < fieldsForPdf.length; colIdx++) {
@@ -321,15 +379,31 @@ export function usePdfExport() {
             marginBottom: marginBottomDefault,
           })
         } else {
-          const contentDefinitionForCell = getContentDefinitionForColumn(col, cellValue)
+          let contentDefinitionForCell: Content
+          if (col.uidt === UITypes.Attachment) {
+            const imageDictionaryKeyPrefix = `${rowIdx}-${colIdx}`
+            const [contentDefinitionForAttachmentCell, entriesForImageDictionary] =
+              await getContentDefinitionAndImageDictionaryForAttachmentColumn(col, cellValue, imageDictionaryKeyPrefix)
+            imagesDictionary = { ...imagesDictionary, ...entriesForImageDictionary }
+            contentDefinitionForCell = contentDefinitionForAttachmentCell
+          } else {
+            contentDefinitionForCell = await getContentDefinitionForColumn(col, cellValue)
+          }
+          console.log('BARFOO contentDefinitionForCell', contentDefinitionForCell)
+          // if(contentDefinitionForCell)
           docDefinitionContent.push(contentDefinitionForCell)
         }
       }
     }
 
+    console.log('FOOBAR imagesDictionary', imagesDictionary)
+
     const docDefinition: TDocumentDefinitions = {
-      content: docDefinitionContent,
+      // content: docDefinitionContent,
+      content: [...docDefinitionContent],
+      images: imagesDictionary,
     }
+    console.log('FOOBAR docDefinition', docDefinition)
 
     return docDefinition
   }
