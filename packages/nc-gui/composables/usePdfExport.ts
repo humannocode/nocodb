@@ -13,6 +13,7 @@ export function usePdfExport() {
   const { getAttachmentSrc } = useAttachment()
 
   const marginBottomDefault = 20
+  const graphicsDefaultWidth = 100
 
   const defaultValueStyle = {
     marginBottom: marginBottomDefault,
@@ -146,7 +147,32 @@ export function usePdfExport() {
         break
       }
       case UITypes.GeoData: {
-        return simpleValueRendering(cellValue)
+        console.log('cellValue', cellValue)
+        const [latitude, longitude] = cellValue.split(';')
+        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+        console.log('latitude', latitude)
+        console.log('longitude', longitude)
+        return {
+          ul: [
+            {
+              text: `Lat: ${latitude}; Long: ${longitude}`,
+              ...defaultValueStyle,
+              marginBottom: 3,
+            },
+            {
+              text: 'Open in Google Maps',
+              link: googleMapsLink,
+              decoration: 'underline',
+              ...defaultValueStyle,
+              marginBottom: 3,
+            } as Content,
+            {
+              qr: `${googleMapsLink}`,
+              fit: `${graphicsDefaultWidth}`,
+            },
+          ],
+          marginBottom: marginBottomDefault,
+        }
       }
       case UITypes.Geometry: {
         return simpleValueRendering(cellValue)
