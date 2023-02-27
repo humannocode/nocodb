@@ -22,7 +22,6 @@ export function usePdfExport() {
       fontSize: 10,
     },
   }
-
   // const qrDefaultOptions = {
   //   eccLevel: 'M',
   //   margin: 1,
@@ -98,28 +97,11 @@ export function usePdfExport() {
         } as Content
       }
       case UITypes.QrCode: {
-        // alert(cellValue)
         return {
           qr: `${cellValue}`,
-          // qr: '1',
           fit: `${graphicsDefaultWidth}`,
-          // errorCorrectionLevel: 'M',
-          // margin: 1,
-          // version: 1,
-          // fit: 500,
-          // mode: 'alphanumeric',
-          // rendererOpts: {
-          //   quality: 1,
-          // },
-          // ...qrDefaultOptions,
-          // ...defaultValueStyle,
           marginBottom: marginBottomDefault,
         }
-        // return {
-        //   qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-        // ...qrDefaultOptions,
-        // fit: '500',
-        // }
       }
       case UITypes.Formula: {
         return simpleValueRendering(cellValue)
@@ -173,19 +155,9 @@ export function usePdfExport() {
         break
       }
       case UITypes.GeoData: {
-        console.log('cellValue', cellValue)
         const [latitude, longitude] = cellValue.split(';')
-        console.log('latitude', latitude)
-        console.log('longitude', longitude)
         const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
 
-        // return {
-        //   // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-        //   // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
-        //   qr: `${googleMapsLink}`,
-        //   // ...qrDefaultOptions,
-        //   fit: '200',
-        // }
         return {
           ul: [
             {
@@ -201,26 +173,12 @@ export function usePdfExport() {
               marginBottom: 3,
             } as Content,
             {
-              // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-              // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
               qr: `${googleMapsLink}`,
-              // ...qrDefaultOptions,
               fit: `${graphicsDefaultWidth}`,
             },
-            //     // {
-            //     //   qr: googleMapsLink,
-            //     //   ...qrDefaultOptions,
-            //     // } as Content,
-            //     {
-            //       // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-            //       // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
-            //       qr: googleMapsLink,
-            //       fit: '500',
-            //     },
           ],
           marginBottom: marginBottomDefault,
         }
-        // return simpleValueRendering(cellValue)
       }
       case UITypes.Geometry: {
         return simpleValueRendering(cellValue)
