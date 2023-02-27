@@ -99,7 +99,8 @@ export function usePdfExport() {
       case UITypes.QrCode: {
         // alert(cellValue)
         return {
-          qr: cellValue,
+          qr: `${cellValue}`,
+          // qr: '1',
           fit: '500',
           // errorCorrectionLevel: 'M',
           // margin: 1,
@@ -113,8 +114,8 @@ export function usePdfExport() {
         }
         // return {
         //   qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-          // ...qrDefaultOptions,
-          // fit: '500',
+        // ...qrDefaultOptions,
+        // fit: '500',
         // }
       }
       case UITypes.Formula: {
@@ -174,33 +175,40 @@ export function usePdfExport() {
         console.log('latitude', latitude)
         console.log('longitude', longitude)
         const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+
         return {
-          ul: [
-            {
-              text: cellValue,
-              ...defaultValueStyle,
-              marginBottom: 3,
-            },
-            {
-              text: 'Open in Google Maps',
-              link: googleMapsLink,
-              decoration: 'underline',
-              ...defaultValueStyle,
-              marginBottom: 3,
-            } as Content,
-            // {
-            //   qr: googleMapsLink,
-            //   ...qrDefaultOptions,
-            // } as Content,
-            {
-              // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
-              // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
-              qr: googleMapsLink,
-              fit: '500',
-            },
-          ],
-          marginBottom: marginBottomDefault,
+          // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
+          // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
+          qr: googleMapsLink,
+          fit: '500',
         }
+        // return {
+        //   ul: [
+        //     {
+        //       text: cellValue,
+        //       ...defaultValueStyle,
+        //       marginBottom: 3,
+        //     },
+        //     {
+        //       text: 'Open in Google Maps',
+        //       link: googleMapsLink,
+        //       decoration: 'underline',
+        //       ...defaultValueStyle,
+        //       marginBottom: 3,
+        //     } as Content,
+        //     // {
+        //     //   qr: googleMapsLink,
+        //     //   ...qrDefaultOptions,
+        //     // } as Content,
+        //     {
+        //       // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
+        //       // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
+        //       qr: googleMapsLink,
+        //       fit: '500',
+        //     },
+        //   ],
+        //   marginBottom: marginBottomDefault,
+        // }
         // return simpleValueRendering(cellValue)
       }
       case UITypes.Geometry: {
