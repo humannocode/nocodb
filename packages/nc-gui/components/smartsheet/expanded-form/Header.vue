@@ -12,7 +12,7 @@ import {
 
 const props = defineProps<{ view?: ViewType }>()
 
-const emit = defineEmits(['cancel', 'duplicateRow'])
+const emit = defineEmits(['cancel', 'duplicateRow', 'exportToPdf'])
 
 const route = useRoute()
 
@@ -136,6 +136,17 @@ const onConfirmDeleteRowClick = async () => {
         v-e="['c:row-expand:comment-toggle']"
         class="nc-icon-transition cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
+      />
+    </a-tooltip>
+
+    <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!-- Duplicate row -->
+      <template #title>
+        <div class="text-center w-full">{{ $t('activity.exportToPdf') }}</div>
+      </template>
+      <MdiFilePdfBox
+        class="nc-icon-transition cursor-pointer select-none nc-export-to-pdf text-gray-500 mx-1 min-w-4"
+        @click="emit('exportToPdf')"
       />
     </a-tooltip>
 

@@ -39,6 +39,7 @@ import {
   useMetas,
   useMultiSelect,
   useNuxtApp,
+  usePdfExport,
   useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -46,6 +47,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
+
 import type { Row } from '~/lib'
 
 const { t } = useI18n()
@@ -55,6 +57,8 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
 const { $e } = useNuxtApp()
+
+const { exportPdfForRowsAndColumns } = usePdfExport()
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -124,6 +128,15 @@ const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
+const onClickGeneratePdfForSelectedRows = async () => {
+  const selectedRows = data.value.filter((row) => row.rowMeta.selected).map((row) => row.row)
+  const fieldsForPdf = fields.value
+
+  const pdfFileName = `${meta.value?.title || 'table'}_${view.value?.title || 'view'}__${selectedRows.length}_rows__.pdf`
+
+  exportPdfForRowsAndColumns(selectedRows, fieldsForPdf, pdfFileName)
+}
+
 const getContainerScrollForElement = (
   el: HTMLElement,
   container: HTMLElement,
@@ -156,8 +169,8 @@ const getContainerScrollForElement = (
     relativePos.right + (offset?.right || 0) > 0
       ? container.scrollLeft + relativePos.right + (offset?.right || 0)
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
-      : container.scrollLeft
+        ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+        : container.scrollLeft
 
   /*
    * If the element is below the container, scroll down (positive)
@@ -167,8 +180,8 @@ const getContainerScrollForElement = (
     relativePos.bottom + (offset?.bottom || 0) > 0
       ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
-      : container.scrollTop
+        ? container.scrollTop + relativePos.top - (offset?.top || 0)
+        : container.scrollTop
 
   return scroll
 }
@@ -285,7 +298,7 @@ const {
             activeCell.col = 0
             resetSelectedRange()
             nextTick(() => {
-              ;(document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
+              ; (document.querySelector('td.cell.active') as HTMLInputElement | HTMLTextAreaElement)?.scrollIntoView({
                 behavior: 'smooth',
               })
             })
@@ -703,26 +716,18 @@ const closeAddColumnDropdown = () => {
     </general-overlay>
 
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown
-        v-model:visible="contextMenu"
-        :trigger="isSqlView ? [] : ['contextmenu']"
-        overlay-class-name="nc-dropdown-grid-context-menu"
-      >
-        <table
-          ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
-          @contextmenu="showContextMenu"
-        >
+      <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']"
+        overlay-class-name="nc-dropdown-grid-context-menu">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+          @contextmenu="showContextMenu">
           <thead ref="tableHead">
             <tr class="nc-grid-header">
               <th class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
                 <div class="w-full h-full bg-gray-100 flex pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
-                    <div
-                      :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                      class="nc-check-all w-full items-center"
-                    >
+                    <div :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
+                      class="nc-check-all w-full items-center">
                       <a-checkbox v-model:checked="selectedAllRecords" />
 
                       <span class="flex-1" />
@@ -733,46 +738,26 @@ const closeAddColumnDropdown = () => {
                   </template>
                 </div>
               </th>
-              <th
-                v-for="col in fields"
-                :key="col.title"
-                v-xc-ver-resize
-                :data-col="col.id"
-                :data-title="col.title"
-                @xcresize="onresize(col.id, $event)"
-                @xcresizing="onXcResizing(col.title, $event)"
-                @xcresized="resizingCol = null"
-              >
+              <th v-for="col in fields" :key="col.title" v-xc-ver-resize :data-col="col.id" :data-title="col.title"
+                @xcresize="onresize(col.id, $event)" @xcresizing="onXcResizing(col.title, $event)"
+                @xcresized="resizingCol = null">
                 <div class="w-full h-full bg-gray-100 flex items-center">
                   <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
                   <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
                 </div>
               </th>
-              <th
-                v-if="isAddingColumnAllowed"
-                v-e="['c:column:add']"
-                class="cursor-pointer"
-                @click.stop="addColumnDropdown = true"
-              >
-                <a-dropdown
-                  v-model:visible="addColumnDropdown"
-                  :trigger="['click']"
-                  overlay-class-name="nc-dropdown-grid-add-column"
-                >
+              <th v-if="isAddingColumnAllowed" v-e="['c:column:add']" class="cursor-pointer"
+                @click.stop="addColumnDropdown = true">
+                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']"
+                  overlay-class-name="nc-dropdown-grid-add-column">
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAddProvider
-                      v-if="addColumnDropdown"
-                      :column-position="columnOrder"
-                      @submit="closeAddColumnDropdown"
-                      @cancel="closeAddColumnDropdown"
-                      @click.stop
-                      @keydown.stop
-                    />
+                    <SmartsheetColumnEditOrAddProvider v-if="addColumnDropdown" :column-position="columnOrder"
+                      @submit="closeAddColumnDropdown" @cancel="closeAddColumnDropdown" @click.stop @keydown.stop />
                   </template>
                 </a-dropdown>
               </th>
@@ -781,110 +766,64 @@ const closeAddColumnDropdown = () => {
           <tbody ref="tbodyEl">
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr
-                  class="nc-grid-row"
-                  :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
-                  :data-testid="`grid-row-${rowIndex}`"
-                >
+                <tr class="nc-grid-row" :style="{ height: rowHeight ? `${rowHeight * 1.5}rem` : `1.5rem` }"
+                  :data-testid="`grid-row-${rowIndex}`">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
-                      <div
-                        v-if="!readOnly || !isLocked"
-                        class="nc-row-no text-xs text-gray-500"
-                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                      >
+                      <div v-if="!readOnly || !isLocked" class="nc-row-no text-xs text-gray-500"
+                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }">
                         {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
                       </div>
-                      <div
-                        v-if="!readOnly"
-                        :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                        class="nc-row-expand-and-checkbox"
-                      >
+                      <div v-if="!readOnly" :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                        class="nc-row-expand-and-checkbox">
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
 
-                      <div
-                        v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
-                        class="nc-expand"
-                        :data-testid="`nc-expand-${rowIndex}`"
-                        :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                      >
-                        <a-spin
-                          v-if="row.rowMeta.saving"
-                          class="!flex items-center"
-                          :data-testid="`row-save-spinner-${rowIndex}`"
-                        />
+                      <div v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)" class="nc-expand"
+                        :data-testid="`nc-expand-${rowIndex}`" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                        <a-spin v-if="row.rowMeta.saving" class="!flex items-center"
+                          :data-testid="`row-save-spinner-${rowIndex}`" />
                         <template v-else>
-                          <span
-                            v-if="row.rowMeta?.commentCount"
+                          <span v-if="row.rowMeta?.commentCount"
                             class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
                             :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                            @click="expandForm(row, state)"
-                          >
+                            @click="expandForm(row, state)">
                             {{ row.rowMeta.commentCount }}
                           </span>
-                          <div
-                            v-else
-                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
-                          >
-                            <MdiArrowExpand
-                              v-e="['c:row-expand']"
+                          <div v-else
+                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
+                            <MdiArrowExpand v-e="['c:row-expand']"
                               class="select-none transform hover:(text-accent scale-120) nc-row-expand"
-                              @click="expandForm(row, state)"
-                            />
+                              @click="expandForm(row, state)" />
                           </div>
                         </template>
                       </div>
                     </div>
                   </td>
-                  <SmartsheetTableDataCell
-                    v-for="(columnObj, colIndex) of fields"
-                    :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
-                    :class="{
+                  <SmartsheetTableDataCell v-for="(columnObj, colIndex) of fields" :key="columnObj.id"
+                    class="cell relative cursor-pointer nc-grid-cell" :class="{
                       'active': hasEditPermission && isCellSelected(rowIndex, colIndex),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                       'align-middle': !rowHeight || rowHeight === 1,
                       'align-top': rowHeight && rowHeight !== 1,
-                    }"
-                    :data-testid="`cell-${columnObj.title}-${rowIndex}`"
-                    :data-key="rowIndex + columnObj.id"
-                    :data-col="columnObj.id"
-                    :data-title="columnObj.title"
+                    }" :data-testid="`cell-${columnObj.title}-${rowIndex}`" :data-key="rowIndex + columnObj.id"
+                    :data-col="columnObj.id" :data-title="columnObj.title"
                     @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                    @mouseover="handleMouseOver(rowIndex, colIndex)"
-                    @click="handleCellClick($event, rowIndex, colIndex)"
+                    @mouseover="handleMouseOver(rowIndex, colIndex)" @click="handleCellClick($event, rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                  >
+                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })">
                     <div v-if="!switchingTab" class="w-full h-full">
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(columnObj)"
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :row="row"
-                        :read-only="readOnly"
-                        @navigate="onNavigate"
-                        @save="updateOrSaveRow(row, '', state)"
-                      />
+                      <LazySmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]"
+                        :column="columnObj" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :row="row" :read-only="readOnly" @navigate="onNavigate" @save="updateOrSaveRow(row, '', state)" />
 
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :edit-enabled="
-                          !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
-                        "
-                        :row-index="rowIndex"
-                        :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-                        :read-only="readOnly"
-                        @update:edit-enabled="editEnabled = $event"
-                        @save="updateOrSaveRow(row, columnObj.title, state)"
-                        @navigate="onNavigate"
-                        @cancel="editEnabled = false"
-                      />
+                      <LazySmartsheetCell v-else v-model="row.row[columnObj.title]" :column="columnObj" :edit-enabled="
+                        !!hasEditPermission && !!editEnabled && activeCell.col === colIndex && activeCell.row === rowIndex
+                      " :row-index="rowIndex" :active="activeCell.col === colIndex && activeCell.row === rowIndex"
+                        :read-only="readOnly" @update:edit-enabled="editEnabled = $event"
+                        @save="updateOrSaveRow(row, columnObj.title, state)" @navigate="onNavigate"
+                        @cancel="editEnabled = false" />
                     </div>
                   </SmartsheetTableDataCell>
                 </tr>
@@ -892,12 +831,8 @@ const closeAddColumnDropdown = () => {
             </LazySmartsheetRow>
 
             <tr v-if="isAddingEmptyRowAllowed">
-              <td
-                v-e="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
+              <td v-e="['c:row:add:grid-bottom']" :colspan="visibleColLength + 1"
+                class="text-left pointer nc-grid-add-new-cell cursor-pointer" @click="addEmptyRow()">
                 <div class="px-2 w-full flex items-center text-gray-500">
                   <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
 
@@ -919,6 +854,13 @@ const closeAddColumnDropdown = () => {
               </div>
             </a-menu-item>
 
+            <a-menu-item @click="onClickGeneratePdfForSelectedRows">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
+                <!-- Generate PDF for Selected Rows -->
+                {{ $t('activity.generatePdfForSelectedRows') }}
+              </div>
+            </a-menu-item>
+
             <a-menu-item @click="deleteSelectedRows">
               <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
@@ -927,14 +869,11 @@ const closeAddColumnDropdown = () => {
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item
-              v-if="
-                contextMenuTarget &&
-                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
-                  !isVirtualCol(fields[contextMenuTarget.col]))
-              "
-              @click="clearCell(contextMenuTarget)"
-            >
+            <a-menu-item v-if="
+              contextMenuTarget &&
+              (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
+                !isVirtualCol(fields[contextMenuTarget.col]))
+            " @click="clearCell(contextMenuTarget)">
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
@@ -945,7 +884,8 @@ const closeAddColumnDropdown = () => {
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy" @click="copyValue(contextMenuTarget)">
+            <a-menu-item v-if="contextMenuTarget" data-testid="context-menu-item-copy"
+              @click="copyValue(contextMenuTarget)">
               <div v-e="['a:row:copy']" class="nc-project-menu-item">
                 <!-- Copy -->
                 {{ $t('general.copy') }}
@@ -959,30 +899,16 @@ const closeAddColumnDropdown = () => {
     <LazySmartsheetPagination />
 
     <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :row="expandedFormRow"
-        :state="expandedFormRowState"
-        :meta="meta"
-        :view="view"
-        @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
-      />
+      <LazySmartsheetExpandedForm v-if="expandedFormRow && expandedFormDlg" v-model="expandedFormDlg"
+        :row="expandedFormRow" :state="expandedFormRowState" :meta="meta" :view="view"
+        @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)" />
     </Suspense>
 
     <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormOnRowIdDlg"
-        :key="routeQuery.rowId"
-        v-model="expandedFormOnRowIdDlg"
-        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-        :meta="meta"
-        :row-id="routeQuery.rowId"
-        :view="view"
-        show-next-prev-icons
-        @next="navigateToSiblingRow(NavigateDir.NEXT)"
-        @prev="navigateToSiblingRow(NavigateDir.PREV)"
-      />
+      <LazySmartsheetExpandedForm v-if="expandedFormOnRowIdDlg" :key="routeQuery.rowId" v-model="expandedFormOnRowIdDlg"
+        :row="{ row: {}, oldRow: {}, rowMeta: {} }" :meta="meta" :row-id="routeQuery.rowId" :view="view"
+        show-next-prev-icons @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)" />
     </Suspense>
   </div>
 </template>
@@ -1003,7 +929,7 @@ const closeAddColumnDropdown = () => {
     @apply bg-gray-100;
   }
 
-  td:not(:first-child) > div {
+  td:not(:first-child)>div {
     overflow: hidden;
     @apply flex px-1 h-auto;
   }
@@ -1069,6 +995,7 @@ const closeAddColumnDropdown = () => {
 }
 
 :deep {
+
   .resizer:hover,
   .resizer:active,
   .resizer:focus {

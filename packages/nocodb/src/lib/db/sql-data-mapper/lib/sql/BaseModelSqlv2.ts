@@ -46,6 +46,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
 import QrCodeColumn from '../../../../models/QrCodeColumn';
 import BarcodeColumn from '../../../../models/BarcodeColumn';
+import QRCode from 'qrcode';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -176,6 +177,7 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      qrAndBarcodesAsBase64?: string;
     } = {},
     ignoreViewFilterAndSort = false
   ): Promise<any> {
@@ -253,7 +255,12 @@ class BaseModelSqlv2 {
 
     if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.execAndParse(qb);
+    let data = await this.execAndParse(qb);
+
+    if (rest?.qrAndBarcodesAsBase64) {
+      console.log('qrAndBarcodesAsBase64 === true');
+      data = await this.convertQrAndBarcodeTypesToBase64(data); //, this.model.columns);
+    }
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -1403,6 +1410,7 @@ class BaseModelSqlv2 {
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s;
+    obj.qrAndBarcodesAsBase64 = args.qrAndBarcodesAsBase64 === 'true' || false;
     return obj;
   }
 
@@ -2849,7 +2857,8 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
-    return this.convertAttachmentType(
+
+    const dataWithConvertedAttachmentTypes = this.convertAttachmentType(
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
         : query.slice(0, 6) === 'select' && !this.isMssql
@@ -2859,6 +2868,43 @@ class BaseModelSqlv2 {
         : await this.dbDriver.raw(query),
       childTable
     );
+
+    // const dataWithConvertedQrAndBarcodes =
+    //   this.convertQrAndBarcodeTypesToBase64(dataWithConvertedAttachmentTypes);
+
+    // return dataWithConvertedQrAndBarcodes;
+    return dataWithConvertedAttachmentTypes;
+  }
+
+  private async _convertQrAndBarcodeTypesToBase64(
+    qrOrBarcodeColumns: Record<string, any>[],
+    d: Record<string, any>
+  ) {
+    try {
+      if (d) {
+        for (const qrOrBarcodeColumn of qrOrBarcodeColumns) {
+          if (
+            d[qrOrBarcodeColumn.title] &&
+            typeof d[qrOrBarcodeColumn.title] === 'string'
+          ) {
+            // const generateQR = async (text) => {
+            //   try {
+            //     console.log(await QRCode.toDataURL(text));
+            //   } catch (err) {
+            //     console.error(err);
+            //   }
+            // };
+            // d[col.title] = JSON.parse(d[col.title]);
+
+            // TODO: better switch here to a parallel approach (atm each loop iteration is blocked till the )
+            d[qrOrBarcodeColumn.title] = await QRCode.toDataURL(
+              d[qrOrBarcodeColumn.title]
+            );
+          }
+        }
+      }
+    } catch {}
+    return d;
   }
 
   private _convertAttachmentType(
@@ -2875,6 +2921,32 @@ class BaseModelSqlv2 {
       }
     } catch {}
     return d;
+  }
+
+  private async convertQrAndBarcodeTypesToBase64(
+    data: Record<string, any>,
+    childTable?: Model
+  ) {
+    if (data) {
+      const qrOrBarcodeColumns = (
+        childTable ? childTable.columns : this.model.columns
+      ).filter((c) => c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode);
+      if (qrOrBarcodeColumns.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) =>
+              this._convertQrAndBarcodeTypesToBase64(qrOrBarcodeColumns, d)
+            )
+          );
+        } else {
+          await this._convertQrAndBarcodeTypesToBase64(
+            qrOrBarcodeColumns,
+            data
+          );
+        }
+      }
+    }
+    return data;
   }
 
   private convertAttachmentType(data: Record<string, any>, childTable?: Model) {

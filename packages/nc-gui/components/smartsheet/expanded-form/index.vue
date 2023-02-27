@@ -42,6 +42,8 @@ const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev'])
 
 const { t } = useI18n()
 
+const { exportPdfForRowsAndColumns } = usePdfExport()
+
 const row = ref(props.row)
 
 const state = toRef(props, 'state')
@@ -152,6 +154,13 @@ const cellWrapperEl = ref<HTMLElement>()
 onMounted(() => {
   setTimeout(() => (cellWrapperEl.value?.querySelector('input,select,textarea') as HTMLInputElement)?.focus())
 })
+
+const onExportToPdf = async () => {
+  // const titleOfDisplayValueCol = meta.value.columns?.find((el) => el.pv)?.title
+  // const displayValue = (titleOfDisplayValueCol && row.value.row[titleOfDisplayValueCol]) || ''
+  const pdfFileName = `export-${meta.value.title}___RowId_${row.value.row.Id || ''}.pdf`
+  await exportPdfForRowsAndColumns([row.value.row], meta.value.columns || [], pdfFileName)
+}
 </script>
 
 <script lang="ts">
@@ -170,7 +179,12 @@ export default {
     class="nc-drawer-expanded-form"
     :class="{ active: isExpanded }"
   >
-    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" @duplicate-row="onDuplicateRow" />
+    <SmartsheetExpandedFormHeader
+      :view="props.view"
+      @cancel="onClose"
+      @duplicate-row="onDuplicateRow"
+      @export-to-pdf="onExportToPdf"
+    />
 
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
