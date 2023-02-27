@@ -543,6 +543,7 @@ export interface FormColumnType {
   uuid?: any;
   label?: string;
   help?: any;
+  enable_scanner?: boolean;
   required?: BoolType;
   show?: BoolType;
   order?: number;
