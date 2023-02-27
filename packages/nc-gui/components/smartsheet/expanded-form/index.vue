@@ -156,7 +156,10 @@ onMounted(() => {
 })
 
 const onExportToPdf = async () => {
-  await exportPdfForRowsAndColumns([row.value.row], meta.value.columns || [], 'FOOBAR.pdf')
+  // const titleOfDisplayValueCol = meta.value.columns?.find((el) => el.pv)?.title
+  // const displayValue = (titleOfDisplayValueCol && row.value.row[titleOfDisplayValueCol]) || ''
+  const pdfFileName = `export-${meta.value.title}___RowId_${row.value.row.Id || ''}.pdf`
+  await exportPdfForRowsAndColumns([row.value.row], meta.value.columns || [], pdfFileName)
 }
 </script>
 
