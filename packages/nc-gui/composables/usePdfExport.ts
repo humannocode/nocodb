@@ -2,7 +2,7 @@ import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
+import type { Content, ContentQr, TDocumentDefinitions } from 'pdfmake/interfaces'
 import JsBarcode from 'jsbarcode'
 
 import { useAttachment, useI18n } from '#imports'
@@ -13,6 +13,7 @@ export function usePdfExport() {
   const { getAttachmentSrc } = useAttachment()
 
   const marginBottomDefault = 20
+  const graphicsDefaultWidth = 200
 
   const defaultValueStyle = {
     marginBottom: marginBottomDefault,
@@ -21,6 +22,16 @@ export function usePdfExport() {
       fontSize: 10,
     },
   }
+
+  const qrDefaultOptions = {
+    eccLevel: 'M',
+    margin: 1,
+    // marginBottom: marginBottomDefault,
+    version: 4,
+    // fit: graphicsDefaultWidth,
+    fit: 500,
+    // width: graphicsDefaultWidth,
+  } as Omit<ContentQr, 'qr'>
 
   const simpleValueRendering = (cellValue: string): Content => ({
     text: `${cellValue}`,
@@ -82,17 +93,29 @@ export function usePdfExport() {
 
         return {
           svg: svgString,
-          width: 200,
+          width: graphicsDefaultWidth,
         } as Content
       }
       case UITypes.QrCode: {
+        // alert(cellValue)
         return {
           qr: cellValue,
-          eccLevel: 'M',
-          version: 4,
-          marginBottom: marginBottomDefault,
-          width: 200,
-        } as Content
+          fit: '500',
+          // errorCorrectionLevel: 'M',
+          // margin: 1,
+          // version: 1,
+          // fit: 500,
+          // mode: 'alphanumeric',
+          // rendererOpts: {
+          //   quality: 1,
+          // },
+          // ...qrDefaultOptions,
+        }
+        // return {
+        //   qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
+          // ...qrDefaultOptions,
+          // fit: '500',
+        // }
       }
       case UITypes.Formula: {
         return simpleValueRendering(cellValue)
@@ -150,12 +173,35 @@ export function usePdfExport() {
         const [latitude, longitude] = cellValue.split(';')
         console.log('latitude', latitude)
         console.log('longitude', longitude)
+        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
         return {
-          text: cellValue,
-          link: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
-          ...defaultValueStyle,
+          ul: [
+            {
+              text: cellValue,
+              ...defaultValueStyle,
+              marginBottom: 3,
+            },
+            {
+              text: 'Open in Google Maps',
+              link: googleMapsLink,
+              decoration: 'underline',
+              ...defaultValueStyle,
+              marginBottom: 3,
+            } as Content,
+            // {
+            //   qr: googleMapsLink,
+            //   ...qrDefaultOptions,
+            // } as Content,
+            {
+              // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
+              // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
+              qr: googleMapsLink,
+              fit: '500',
+            },
+          ],
+          marginBottom: marginBottomDefault,
         }
-        return simpleValueRendering(cellValue)
+        // return simpleValueRendering(cellValue)
       }
       case UITypes.Geometry: {
         return simpleValueRendering(cellValue)
@@ -170,11 +216,8 @@ export function usePdfExport() {
         const lookupEntriesAsListContentConfig: Content = {
           ul: cellValue.map((lookupEntryValue: string) => ({
             text: `${lookupEntryValue}`,
+            ...defaultValueStyle,
             marginBottom: 3,
-            style: {
-              bold: false,
-              fontSize: 10,
-            },
           })),
           marginBottom: marginBottomDefault,
         }
@@ -187,11 +230,8 @@ export function usePdfExport() {
           contentDefinitionForCell = {
             ul: cellValue.map((ltarEntry) => ({
               text: `${ltarEntry.Title} (${ltarEntry.Id})`,
+              ...defaultValueStyle,
               marginBottom: 3,
-              style: {
-                bold: false,
-                fontSize: 10,
-              },
             })),
             marginBottom: marginBottomDefault,
           }
@@ -260,7 +300,7 @@ export function usePdfExport() {
           {
             image: imageDictionaryKey,
             marginBottom: 10,
-            width: 100,
+            width: graphicsDefaultWidth,
           },
         )
       }
