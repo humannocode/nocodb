@@ -146,6 +146,15 @@ export function usePdfExport() {
         break
       }
       case UITypes.GeoData: {
+        console.log('cellValue', cellValue)
+        const [latitude, longitude] = cellValue.split(';')
+        console.log('latitude', latitude)
+        console.log('longitude', longitude)
+        return {
+          text: cellValue,
+          link: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+          ...defaultValueStyle,
+        }
         return simpleValueRendering(cellValue)
       }
       case UITypes.Geometry: {
