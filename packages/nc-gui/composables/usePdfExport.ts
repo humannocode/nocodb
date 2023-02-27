@@ -29,9 +29,10 @@ export function usePdfExport() {
     // marginBottom: marginBottomDefault,
     version: 4,
     // fit: graphicsDefaultWidth,
-    fit: 500,
+    fit: '300',
     // width: graphicsDefaultWidth,
-  } as Omit<ContentQr, 'qr'>
+  }
+  // as Omit<ContentQr, 'qr'>
 
   const simpleValueRendering = (cellValue: string): Content => ({
     text: `${cellValue}`,
@@ -101,7 +102,7 @@ export function usePdfExport() {
         return {
           qr: `${cellValue}`,
           // qr: '1',
-          fit: '500',
+          fit: '200',
           // errorCorrectionLevel: 'M',
           // margin: 1,
           // version: 1,
@@ -179,8 +180,9 @@ export function usePdfExport() {
         return {
           // qr: 'text in Qasdaskdas dalskdaj dkljaslkd jaslkd jaslkdj adsasda dasdk ajsldkaj sdlkaj ldkajsdlk ajdlkaj ldkaj dR',
           // qr: 'https://www.google.com/maps/search/?api=1&query=52.5610523,13.3843785',
-          qr: googleMapsLink,
-          fit: '500',
+          qr: `${googleMapsLink}`,
+          // ...qrDefaultOptions,
+          fit: '200',
         }
         // return {
         //   ul: [
