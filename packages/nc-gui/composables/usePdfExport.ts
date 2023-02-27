@@ -3,6 +3,7 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Content, TDocumentDefinitions } from 'pdfmake/interfaces'
+import JsBarcode from 'jsbarcode'
 
 import { useAttachment, useI18n } from '#imports'
 ;(<any>pdfMake).vfs = pdfFonts.pdfMake.vfs
@@ -67,12 +68,30 @@ export function usePdfExport() {
         const checkboxValueAsYesOrNo = cellValue ? 'Yes' : 'No'
         return simpleValueRendering(checkboxValueAsYesOrNo)
       }
+      case UITypes.Barcode: {
+        // Create a new SVG element
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+        // Generate the barcode and add it to the SVG element
+        JsBarcode(svg, cellValue, {
+          format: col?.meta?.barcodeFormat || 'CODE128',
+          displayValue: true,
+        })
+
+        const svgString = new XMLSerializer().serializeToString(svg)
+
+        return {
+          svg: svgString,
+          width: 200,
+        } as Content
+      }
       case UITypes.QrCode: {
         return {
           qr: cellValue,
           eccLevel: 'M',
           version: 4,
           marginBottom: marginBottomDefault,
+          width: 200,
         } as Content
       }
       case UITypes.Formula: {
@@ -248,7 +267,6 @@ export function usePdfExport() {
 
   const getDocDefinitionForSelectedRows = async (selectedRows: Record<string, any>[], fieldsForPdf: ColumnType[]) => {
     const docDefinitionContent: Content = []
-
     let imagesDictionary: { [key: string]: string } = {}
 
     for (let rowIdx = 0; rowIdx < selectedRows.length; rowIdx++) {
