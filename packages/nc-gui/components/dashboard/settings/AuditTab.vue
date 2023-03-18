@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, onMounted, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import { h, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
 
 const { $api } = useNuxtApp()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { t } = useI18n()
 
@@ -28,8 +28,8 @@ async function loadAudits(page = currentPage, limit = currentLimit) {
     isLoading = true
 
     const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
-      offset: (limit * (page - 1)).toString(),
-      limit: limit.toString(),
+      offset: limit * (page - 1),
+      limit,
     })
 
     audits = list

@@ -32,6 +32,7 @@ interface Props {
   modelValue?: string | string[]
   rowIndex?: number
   disableOptionCreation?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const { modelValue, disableOptionCreation } = defineProps<Props>()
@@ -259,8 +260,7 @@ async function addIfMissingAndSave() {
     } else {
       activeOptCreateInProgress.value--
     }
-  } catch (e) {
-    // todo: handle error
+  } catch (e: any) {
     console.log(e)
     activeOptCreateInProgress.value--
     message.error(await extractSdkResponseErrorMsg(e))
@@ -336,7 +336,7 @@ useEventListener(document, 'click', handleClose, true)
         v-for="op of options"
         :key="op.id || op.title"
         :value="op.title"
-        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >

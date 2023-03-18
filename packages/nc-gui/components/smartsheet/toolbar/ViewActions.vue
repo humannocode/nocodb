@@ -9,6 +9,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useI18n,
   useMenuCloseOnEsc,
   useNuxtApp,
@@ -24,6 +25,8 @@ import MdiAccountGroupIcon from '~icons/mdi/account-group'
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
+
+const { isMobileMode } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -58,7 +61,7 @@ const quickImportDialogs: Record<typeof quickImportDialogTypes[number], Ref<bool
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
+const { isSharedBase } = storeToRefs(useProject())
 
 const meta = inject(MetaInj, ref())
 
@@ -217,7 +220,7 @@ useMenuCloseOnEsc(open)
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="!isSqlView">
+            <a-menu-item v-if="!isSqlView && !isMobileMode">
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
                 v-e="['c:actions:webhook']"
@@ -229,7 +232,7 @@ useMenuCloseOnEsc(open)
               </div>
             </a-menu-item>
 
-            <a-menu-item v-if="!isSharedBase && !isPublicView">
+            <a-menu-item v-if="!isSharedBase && !isPublicView && !isMobileMode">
               <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
                 <MdiXml class="text-gray-500" />
                 <!-- Get API Snippet -->
@@ -238,7 +241,7 @@ useMenuCloseOnEsc(open)
             </a-menu-item>
 
             <a-menu-item>
-              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
+              <div v-if="!isMobileMode" v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
                 <MaterialSymbolsAccountTreeRounded class="text-gray-500" />
                 {{ $t('title.erdView') }}
               </div>

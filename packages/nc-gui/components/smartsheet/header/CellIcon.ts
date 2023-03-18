@@ -30,6 +30,7 @@ import {
   isTime,
   isURL,
   isYear,
+  storeToRefs,
   toRef,
   useProject,
 } from '#imports'
@@ -60,6 +61,8 @@ import DurationIcon from '~icons/mdi/timer-outline'
 const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return KeyIcon
+  } else if (isSpecificDBType(column)) {
+    return SpecificDBTypeIcon
   } else if (isJSON(column)) {
     return JSONIcon
   } else if (isDate(column, abstractType)) {
@@ -102,8 +105,6 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     return NumericIcon
   } else if (isString(column, abstractType)) {
     return StringIcon
-  } else if (isSpecificDBType(column)) {
-    return SpecificDBTypeIcon
   } else {
     return GenericIcon
   }
@@ -123,7 +124,7 @@ export default defineComponent({
 
     const column = inject(ColumnInj, columnMeta)
 
-    const { sqlUis } = useProject()
+    const { sqlUis } = storeToRefs(useProject())
 
     const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 

@@ -122,6 +122,7 @@ const {
   selectedAllRecords,
   removeRowIfNew,
   navigateToSiblingRow,
+  getExpandedRowIndex,
 } = useViewData(meta, view, xWhere)
 
 const { getMeta } = useMetas()
@@ -770,9 +771,12 @@ const closeAddColumnDropdown = () => {
                   :data-testid="`grid-row-${rowIndex}`">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
-                      <div v-if="!readOnly || !isLocked" class="nc-row-no text-xs text-gray-500"
-                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }">
-                        {{ ((paginationData.page ?? 1) - 1) * 25 + rowIndex + 1 }}
+                      <div
+                        v-if="!readOnly || !isLocked"
+                        class="nc-row-no text-xs text-gray-500"
+                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                      >
+                        {{ ((paginationData.page ?? 1) - 1) * (paginationData.pageSize ?? 25) + rowIndex + 1 }}
                       </div>
                       <div v-if="!readOnly" :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox">
@@ -905,10 +909,20 @@ const closeAddColumnDropdown = () => {
     </Suspense>
 
     <Suspense>
-      <LazySmartsheetExpandedForm v-if="expandedFormOnRowIdDlg" :key="routeQuery.rowId" v-model="expandedFormOnRowIdDlg"
-        :row="{ row: {}, oldRow: {}, rowMeta: {} }" :meta="meta" :row-id="routeQuery.rowId" :view="view"
-        show-next-prev-icons @next="navigateToSiblingRow(NavigateDir.NEXT)"
-        @prev="navigateToSiblingRow(NavigateDir.PREV)" />
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg"
+        :key="routeQuery.rowId"
+        v-model="expandedFormOnRowIdDlg"
+        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :row-id="routeQuery.rowId"
+        :view="view"
+        show-next-prev-icons
+        :first-row="getExpandedRowIndex() === 0"
+        :last-row="getExpandedRowIndex() === data.length - 1"
+        @next="navigateToSiblingRow(NavigateDir.NEXT)"
+        @prev="navigateToSiblingRow(NavigateDir.PREV)"
+      />
     </Suspense>
   </div>
 </template>
@@ -982,7 +996,7 @@ const closeAddColumnDropdown = () => {
     position: sticky !important;
     left: 80px;
     z-index: 5;
-    @apply border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 
   tbody td:nth-child(2) {
@@ -990,7 +1004,7 @@ const closeAddColumnDropdown = () => {
     left: 80px;
     z-index: 4;
     background: white;
-    @apply shadow-lg border-r-1 border-r-gray-300;
+    @apply border-r-2 border-r-gray-300;
   }
 }
 

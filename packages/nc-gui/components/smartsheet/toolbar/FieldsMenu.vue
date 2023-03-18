@@ -31,6 +31,8 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const rootFields = inject(FieldsInj)
 
+const { isMobileMode } = useGlobal()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -125,13 +127,11 @@ const coverImageColumnId = computed({
     ) {
       if (activeView.value?.type === ViewTypes.GALLERY) {
         await $api.dbView.galleryUpdate(activeView.value?.id, {
-          ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
         ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
       } else if (activeView.value?.type === ViewTypes.KANBAN) {
         await $api.dbView.kanbanUpdate(activeView.value?.id, {
-          ...activeView.value?.view,
           fk_cover_image_col_id: val,
         })
         ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
@@ -159,7 +159,7 @@ useMenuCloseOnEsc(open)
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
+          <span v-if="!isMobileMode" class="text-capitalize !text-xs font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
 

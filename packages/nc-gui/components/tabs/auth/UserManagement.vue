@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { OrgUserRoles } from 'nocodb-sdk'
-import type { RequestParams } from 'nocodb-sdk'
+import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
   message,
   onBeforeMount,
   projectRoleTagColors,
   ref,
+  storeToRefs,
   useApi,
   useCopy,
   useDashboard,
@@ -24,7 +25,7 @@ const { $e } = useNuxtApp()
 
 const { api } = useApi()
 
-const { project } = useProject()
+const { project } = storeToRefs(useProject())
 
 const { copy } = useCopy()
 
@@ -76,7 +77,12 @@ const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
 
-    await api.auth.projectUserAdd(project.value.id, user)
+    if (!user.roles) {
+      // mark it as editor by default
+      user.roles = 'editor'
+    }
+
+    await api.auth.projectUserAdd(project.value.id, user as ProjectUserReqType)
 
     // Successfully added user to project
     message.success(t('msg.success.userAddedToProject'))
@@ -147,7 +153,7 @@ const copyInviteUrl = async (user: User) => {
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
   $e('c:user:copy-url')
