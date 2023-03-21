@@ -5,11 +5,21 @@ This repository is a fork of NocoDB, a phantastic Open Source Airtable clone (pl
 
 In winter 2022/2023 we ([@flisowna](https://github.com/flisowna) and [@spaudanjo](https://github.com/spaudanjo)) had the pleasure to contribute certain features to NocoDB - features that we consider as relevant not only, but especially for the domain of humanitarian aid and NGO work. 
 
-This was possible because of the support of a scholarship we got granted from the Federal Ministry of Education and Research (BMBF), with strong involvement of the Open Knowledge Foundation and the DLR (German Aerospace Center). Find more information about the funding program (Prototypefund) and how to apply here (WEBSITE HERE). 
+This was possible because of the support of a scholarship called [Prototypefund](https://prototypefund.de/) we got granted from the Federal [Ministry of Education and Research (BMBF)](https://www.bmbf.de), with strong involvement of the [Open Knowledge Foundation](https://okfn.de) and the DLR (German Aerospace Center). 
+Find more information about the Prototypefund funding program and how to apply [here](https://prototypefund.de/). 
 
 Since our goal was not to create a permanent fork with the additional features, but instead to directly contribute to the official main repository, the  purpose of this forked repository is focused on: 
 * high-level documentation our contributions and how it could be used by NGOs and other actors/users
 * acting as our issue board for organizing our work during the project phase, without interfering with the issues of the official repository
+
+
+# Sponsors
+
+This project was funded by the German Federal Ministry of Education and Research (BMBF). Read more here (German only):
+
+[Erweiterung einer No-Code-Plattform für humanitäre Krisenreaktionen](https://prototypefund.de/project/erweiterung-einer-no-code-plattform-fuer-humanitaere-krisenreaktionen/)
+
+![BMBF logo](docs/bmbf.jpg)
 
 ## Motivation and background of the project
 A lot of critical humanitarian aid is often provided at the beginning of crises by spontaneous helpers who quickly organize themselves on site. 
@@ -79,14 +89,3 @@ Are you from a NGO, social business or non-profit who wants help?
 * Boxtribute and several other actors from the humanitarian domain
 
 
-
-
-
-
-# Sponsors
-
-This project was funded by the German Federal Ministry of Education and Research (BMBF). Read more here (German only):
-
-[Erweiterung einer No-Code-Plattform für humanitäre Krisenreaktionen](https://prototypefund.de/project/erweiterung-einer-no-code-plattform-fuer-humanitaere-krisenreaktionen/)
-
-![BMBF logo](docs/bmbf.jpg)
