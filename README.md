@@ -34,6 +34,24 @@ Thus, the main goal of our project was to make Open Source Nocode tools like Noc
   * Example video recording
   * Status (officially available, feature toggled, POC branch)
 
+## Use Case examples
+### Welcome center for refugees
+<img src="demo-screenrecordings/WelcomeCenter_1.gif" alt="..." />
+<img src="demo-screenrecordings/WelcomeCenter_2.gif" alt="..." />
+<img src="demo-screenrecordings/WelcomeCenter_3.gif" alt="..." />
+
+### Aid Delivery Orders
+
+<img src="demo-screenrecordings/AidDelivery_1.gif" alt="..." />
+<img src="demo-screenrecordings/AidDelivery_2.gif" alt="..." />
+<img src="demo-screenrecordings/AidDelivery_3.gif" alt="..." />
+<img src="demo-screenrecordings/AidDelivery_4.gif" alt="..." />
+<img src="demo-screenrecordings/AidDelivery_5.gif" alt="..." />
+<img src="demo-screenrecordings/AidDelivery_6.gif" alt="..." />
+
+
+* Both examples are inspired by real use cases, but the details of the table structures are reduced in complexity for the sake of the demo. Also the data is completely made up for the demo - including the geographical data points. 
+
 ### Maybe table here??
 
 ## Need help? 
