@@ -1,9 +1,9 @@
 # Project Page: Extending NocoDB with features of relevance for humanitarian use cases
 
 ## What is this about? 
-This repository is a fork of NocoDB, an Open Source Airtable clone (please see NocoDB's repository and website for more information). 
+This repository is a fork of NocoDB, a phantastic Open Source Airtable clone (please see [NocoDB's repository](https://github.com/nocodb/nocodb) and [website](https://nocodb.com/) for more information). 
 
-In winter 2022/2023 we (flisowna and spaudanjo) had the pleasure to contribute certain features to NocoDB - features that we consider as relevant not only, but especially for the domain of humanitarian aid and NGO work. 
+In winter 2022/2023 we ([@flisowna](https://github.com/flisowna) and [@spaudanjo](https://github.com/spaudanjo)) had the pleasure to contribute certain features to NocoDB - features that we consider as relevant not only, but especially for the domain of humanitarian aid and NGO work. 
 
 This was possible because of the support of a scholarship we got granted from the Federal Ministry of Education and Research (BMBF), with strong involvement of the Open Knowledge Foundation and the DLR (German Aerospace Center). Find more information about the funding program (Prototypefund) and how to apply here (WEBSITE HERE). 
 
@@ -50,7 +50,7 @@ Thus, the main goal of our project was to make Open Source Nocode tools like Noc
 <img src="demo-screenrecordings/AidDelivery_6.gif" alt="..." />
 
 
-* Both examples are inspired by real use cases, but the details of the table structures are reduced in complexity for the sake of the demo. Also the data is completely made up for the demo - including the geographical data points. 
+* Even though both examples are inspired by real use cases that encountered during our research within the domain, the details of the table structures are reduced in complexity for the sake of the demo. Also the data is completely made up for the demo - including the geographical data points. 
 
 ### Maybe table here??
 
