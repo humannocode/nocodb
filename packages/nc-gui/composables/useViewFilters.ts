@@ -11,6 +11,7 @@ import {
   inject,
   message,
   ref,
+  storeToRefs,
   useDebounceFn,
   useMetas,
   useNuxtApp,
@@ -35,7 +36,7 @@ export function useViewFilters(
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-  const { projectMeta } = useProject()
+  const { projectMeta } = storeToRefs(useProject())
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -140,11 +141,30 @@ export function useViewFilters(
     return isNullOrEmptyOp ? projectMeta.value.showNullAndEmptyInFilter : true
   }
 
+  const isComparisonSubOpAllowed = (
+    filter: FilterType,
+    compOp: {
+      text: string
+      value: string
+      ignoreVal?: boolean
+      includedTypes?: UITypes[]
+      excludedTypes?: UITypes[]
+    },
+  ) => {
+    if (compOp.includedTypes) {
+      // include allowed values only if selected column type matches
+      return filter.fk_column_id && compOp.includedTypes.includes(types.value[filter.fk_column_id])
+    } else if (compOp.excludedTypes) {
+      // include not allowed values only if selected column type not matches
+      return filter.fk_column_id && !compOp.excludedTypes.includes(types.value[filter.fk_column_id])
+    }
+  }
+
   const placeholderFilter = (): Filter => {
     return {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
-      )?.[0].value,
+      )?.[0].value as FilterType['comparison_op'],
       value: '',
       status: 'create',
       logical_op: 'and',
@@ -161,16 +181,15 @@ export function useViewFilters(
     try {
       if (hookId) {
         if (parentId) {
-          filters.value = await $api.dbTableFilter.childrenRead(parentId)
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
         } else {
-          // todo: return type is incorrect
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)) as unknown as Filter[]
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)).list as Filter[]
         }
       } else {
         if (parentId) {
-          filters.value = await $api.dbTableFilter.childrenRead(parentId)
+          filters.value = (await $api.dbTableFilter.childrenRead(parentId)).list as Filter[]
         } else {
-          filters.value = await $api.dbTableFilter.read(view.value!.id!)
+          filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as Filter[]
         }
       }
     } catch (e: any) {
@@ -261,7 +280,6 @@ export function useViewFilters(
           comparison: filter.comparison_op,
         })
       } else {
-        // todo: return type of dbTableFilter is void?
         filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
           fk_parent_id: parentId,
@@ -327,5 +345,6 @@ export function useViewFilters(
     addFilterGroup,
     saveOrUpdateDebounced,
     isComparisonOpAllowed,
+    isComparisonSubOpAllowed,
   }
 }

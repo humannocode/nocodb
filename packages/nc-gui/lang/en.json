@@ -210,7 +210,8 @@
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
     "keyboardShortcut": "Keyboard Shortcuts",
-    "generateRandomName": "Generate Random Name"
+    "generateRandomName": "Generate Random Name", 
+    "findRowByScanningCode": "Find row by scanning a QR or Barcode"
   },
   "labels": {
     "createdBy": "Created By",
@@ -237,6 +238,7 @@
     "action": "Action",
     "actions": "Actions",
     "operation": "Operation",
+    "operationSub": "Sub Operation",
     "operationType": "Operation type",
     "operationSubType": "Operation sub-type",
     "description": "Description",
@@ -258,7 +260,7 @@
     "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
-    "yourLocation": "Your Location",
+    "currentLocation": "Current Location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregate function",
@@ -396,7 +398,6 @@
     "insertRow": "Insert New Row",
     "duplicateRow": "Duplicate Row",
     "deleteRow": "Delete Row",
-    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "generatePdfForSelectedRows": "Generate PDF for Selected Rows",
     "exportToPdf": "Export to PDF",
@@ -468,7 +469,9 @@
     },
     "map": {
       "mappedBy": "Mapped By",
-      "chooseMappingField": "Choose a Mapping Field"
+      "chooseMappingField": "Choose a Mapping Field",
+      "openInGoogleMaps": "Google Maps",
+      "openInOpenStreetMap": "OSM"
     },
     "toggleMobileMode": "Toggle Mobile Mode"
   },
@@ -537,13 +540,13 @@
         "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
       },
       "map": {
-        "overLimit": "You're over the limit.",
         "closeLimit": "You're getting close to the limit.",
+        "overLimit": "You're over the limit.",
         "limitNumber": "The limit of markers shown in a Map View is 1000 records."
       },
       "codeScanner": {
-        "loadingScanner": "Loading the scanner...", 
-        "selectColumn": "Please select a column", 
+        "loadingScanner": "Loading the scanner...",
+        "selectColumn": "Select a column (QR code or Barcode) that you want to use for finding a row by scanning.",
         "moreThanOneRowFoundForCode": "More than one row found for this code. Currently only unique codes are supported.",
         "noRowFoundForCode": "No row found for this code for the selected column"
       },

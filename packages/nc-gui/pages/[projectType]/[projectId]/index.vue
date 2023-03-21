@@ -18,6 +18,7 @@ import {
   projectThemeColors,
   ref,
   resolveComponent,
+  storeToRefs,
   useCopy,
   useDialog,
   useGlobal,
@@ -41,13 +42,18 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const route = useRoute()
 
 const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user, currentVersion, isMobileMode, setIsMobileMode } = useGlobal()
 
-const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
+const projectStore = useProject()
+
+const { loadProjectMetaInfo, saveTheme, loadProject, reset } = projectStore
+const { project, isSharedBase, projectMetaInfo } = storeToRefs(projectStore)
 
 const { clearTabs, addTab } = useTabs()
 
@@ -139,7 +145,7 @@ const copyProjectInfo = async () => {
       // Copied to clipboard
       message.info(t('msg.info.copiedToClipboard'))
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
     message.error(e.message)
   }
@@ -165,8 +171,6 @@ onKeyStroke(
   { eventName: 'keydown' },
 )
 
-clearTabs()
-
 onBeforeMount(async () => {
   try {
     await loadProject()
@@ -180,8 +184,8 @@ onBeforeMount(async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  if (!route.params.type && isUIAllowed('teamAndAuth')) {
-    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
+  if (route.name === 'projectType-projectId-index-index' && isUIAllowed('teamAndAuth')) {
+    addTab({ id: TabType.AUTH, type: TabType.AUTH, title: t('title.teamAndAuth') })
   }
 
   /** If v1 url found navigate to corresponding new url */
@@ -196,7 +200,10 @@ onMounted(() => {
   toggleHasSidebar(true)
 })
 
-onBeforeUnmount(reset)
+onBeforeUnmount(() => {
+  clearTabs()
+  reset()
+})
 
 function openKeyboardShortcutDialog() {
   $e('a:actions:keyboard-shortcut')
@@ -395,7 +402,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </a-menu-item>
 
                     <!-- Mobile Mode -->
-                    <a-menu-item key="mobile-mode">
+                    <a-menu-item v-if="betaFeatureToggleState.show || isMobileMode" key="mobile-mode">
                       <div
                         v-e="['e:set-mobile-mode']"
                         class="nc-project-menu-item group"
@@ -595,9 +602,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         v-model:open-key="openDialogKey"
         v-model:data-sources-state="dataSourcesState"
       />
-
       <NuxtPage :page-key="$route.params.projectId" />
-
       <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>

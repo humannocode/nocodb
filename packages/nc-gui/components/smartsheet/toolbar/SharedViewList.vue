@@ -5,6 +5,7 @@ import {
   extractSdkResponseErrorMsg,
   message,
   onMounted,
+  parseProp,
   ref,
   useCopy,
   useDashboard,
@@ -34,7 +35,7 @@ const { dashboardUrl } = useDashboard()
 const sharedViewList = ref<SharedViewType[]>()
 
 const loadSharedViewsList = async () => {
-  sharedViewList.value = await $api.dbViewShare.list(meta.value?.id as string)
+  sharedViewList.value = (await $api.dbViewShare.list(meta.value?.id as string)).list as SharedViewType[]
 
   // todo: show active view in list separately
   // const index = sharedViewList.value.findIndex((v) => {
@@ -70,7 +71,7 @@ const sharedViewUrl = (view: SharedViewType) => {
 
 const renderAllowCSVDownload = (view: SharedViewType) => {
   if (view.type === ViewTypes.GRID) {
-    view.meta = (view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta) as Record<string, any>
+    view.meta = (view.meta && parseProp(view.meta)) as Record<string, any>
     return view.meta?.allowCSVDownload ? '✔️' : '❌'
   } else {
     return 'N/A'
@@ -82,7 +83,7 @@ const copyLink = (view: SharedViewType) => {
     copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
     // Copied to clipboard
     message.success(t('msg.info.copiedToClipboard'))
-  } catch (e) {
+  } catch (e: any) {
     message.error(e.message)
   }
 }

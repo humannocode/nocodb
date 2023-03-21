@@ -2,15 +2,15 @@
 import { Icon } from '@iconify/vue'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, iconMap, provide, storeToRefs, useGlobal, useSidebar, useTabs } from '#imports'
 
-const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
+const tabStore = useTabs()
+const { closeTab } = tabStore
+const { tabs, activeTabIndex, activeTab } = storeToRefs(tabStore)
 
 const { isLoading, isMobileMode } = useGlobal()
 
 provide(TabMetaInj, activeTab)
-
-const mainArea = ref<HTMLDivElement>()
 
 const icon = (tab: TabItem) => {
   switch (tab.type) {
@@ -34,10 +34,6 @@ const hideSidebarOnClickOrTouchIfMobileMode = () => {
     toggle(false)
   }
 }
-
-onMounted(() => {
-  mainArea.value?.addEventListener('click', hideSidebarOnClickOrTouchIfMobileMode)
-})
 </script>
 
 <template>
@@ -94,7 +90,7 @@ onMounted(() => {
         <LazyGeneralFullScreen v-if="!isMobileMode" class="nc-fullscreen-icon mb-1px" />
       </div>
 
-      <div ref="mainArea" class="w-full min-h-[300px] flex-auto">
+      <div class="w-full min-h-[300px] flex-auto" @click="hideSidebarOnClickOrTouchIfMobileMode">
         <NuxtPage :page-key="`${$route.params.projectId}.${$route.name}`" />
       </div>
     </div>

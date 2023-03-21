@@ -157,7 +157,6 @@ export function usePdfExport() {
       case UITypes.GeoData: {
         const [latitude, longitude] = cellValue.split(';')
         const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
-
         return {
           ul: [
             {

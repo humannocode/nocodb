@@ -11,8 +11,10 @@ import {
   getHTMLEncodedText,
   inject,
   message,
+  parseProp,
   provide,
   ref,
+  storeToRefs,
   useApi,
   useFieldQuery,
   useI18n,
@@ -40,7 +42,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { project } = useProject()
+    const { project, sqlUis } = storeToRefs(useProject())
 
     const { $e, $api } = useNuxtApp()
 
@@ -55,8 +57,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const password = ref<string | null>(null)
 
     const { search } = useFieldQuery()
-
-    const { sqlUis } = useProject()
 
     const sqlUi = ref(
       (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
@@ -154,7 +154,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
       }
 
-      for (const data of groupData) {
+      for (const data of groupData ?? []) {
         const key = data.key
         formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
@@ -168,17 +168,26 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         where = `(${groupingField.value},is,null)`
       }
 
+      if (xWhere.value) {
+        where = `${where} and ${xWhere.value}`
+      }
+
       const response = !isPublic.value
         ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            ...{ where: xWhere.value },
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, offset: params.offset })
+        : await fetchSharedViewData({
+            ...params,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            offset: params.offset,
+            where,
+          })
 
-      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
+      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response!.list!)])
     }
 
     async function loadKanbanMeta() {
@@ -190,8 +199,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       // set groupingField
       groupingFieldColumn.value = !isPublic.value
         ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
-        : ((typeof sharedView.value?.meta === 'string' ? JSON.parse(sharedView.value?.meta) : sharedView.value?.meta)
-            .groupingFieldColumn! as ColumnType)
+        : (parseProp(sharedView.value?.meta).groupingFieldColumn! as ColumnType)
 
       groupingField.value = groupingFieldColumn.value.title!
 
@@ -300,10 +308,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
-      await $api.dbView.kanbanUpdate(viewMeta.value.id, {
-        ...kanbanMetaData.value,
-        ...updateObj,
-      })
+      await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
     }
 
     async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.get(null)!.length) {

@@ -14,9 +14,11 @@ import {
   extractSdkResponseErrorMsg,
   isDrawerOrModalExist,
   isMac,
+  parseProp,
   reactive,
   ref,
   resolveComponent,
+  storeToRefs,
   useDialog,
   useGlobal,
   useNuxtApp,
@@ -37,9 +39,12 @@ const { addTab, updateTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { bases, tables, loadTables, isSharedBase } = useProject()
+const projectStore = useProject()
 
-const { activeTab } = useTabs()
+const { loadTables } = projectStore
+const { bases, tables, isSharedBase } = storeToRefs(projectStore)
+
+const { activeTab } = storeToRefs(useTabs())
 
 const { deleteTable } = useTable()
 
@@ -310,7 +315,7 @@ watch(
 const setIcon = async (icon: string, table: TableType) => {
   try {
     table.meta = {
-      ...(table.meta || {}),
+      ...parseProp(table.meta),
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
@@ -322,7 +327,7 @@ const setIcon = async (icon: string, table: TableType) => {
     })
 
     $e('a:table:icon:navdraw', { icon })
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
