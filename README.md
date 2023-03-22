@@ -49,20 +49,20 @@ Additionally, we also worked on
 To make these features more tangible, as well as giving a good impression of what NocoDB in general is already capable of, let's walk through two use cases which are simplified (and only use fake data, including the geographical positions), but are based on actual cases from the humanitarian domain that we encountered in the context of the Russian attack on Ukraine. 
 
 ### Scenario 1: Capturing the demand for humanitarian aid supplies and logistical processing.
-This concerns the provision of supplies to people in crisis areas who are currently unable or unwilling to leave their current location, but also temporarily have no access to sometimes vital goods. From the perspective of the assisting actors/organizations, the process can be roughly divided into two phases: 1) capturing the demand 2) logistical processing to fulfill the demand.
+This concerns the provision of supplies to people in crisis areas who are currently unable to leave their current location, but also temporarily have no access to sometimes vital goods. From the perspective of the assisting actors/organizations, the process can be roughly divided into two phases: 1) capturing the demand 2) logistical processing to fulfill the demand.
 
 
 #### Phase 1: Capturing the demand through easily fillable order forms.
 
-With NocoDB, a corresponding table structure can already be defined within a few minutes, which captures the relevant information for an order (request for aid supplies, for example, by a family in the crisis region).
+With NocoDB, a corresponding table structure can be defined within a few minutes, which captures the relevant information for an order (request for aid supplies, for example by a family in the crisis region).
 
 <img src="demo-screenrecordings/AidDelivery_1.gif" alt="..." />
 
-Based on this structure, a corresponding form can also be created within a few minutes, which can then be publicly shared via a URL.
+Based on this structure, a corresponding form can also be created within a few minutes, which can then be publicly shared via an URL.
 
 <img src="demo-screenrecordings/AidDelivery_2.gif" alt="..." />
 
-The first of the new functions we implemented as part of the funding is the new column type 'Geodata', which stores geographic positions - in this case the location of the people who need the aid supplies - as latitude and longitude. 
+The first of the new functions we implemented is the new column type 'Geodata', which stores geographic positions - in this case the location of the people who need the aid supplies - as latitude and longitude. 
 
 This geoposition can also be easily determined automatically based on the GPS information of the mobile device when filling out the form.
 
@@ -75,7 +75,7 @@ To obtain a quick geographical overview, for example, of all previously made and
 <img src="demo-screenrecordings/AidDelivery_4.gif" alt="..." />
 
 #### Phase 2: Logistical processing for delivery of orders
-Once an order has been validated (for example, by means of an internal column "state"), it is ready for processing and being eventually delivered. From this point on, QR code labels that can be attached to the orders (package boxes or sometimes entire pallets) are extremely helpful and time-saving for easy tracking and updating in the system: instead of manually searching for an order that needs to change from the status "Packed" to "In delivery" using the order ID, for example, the order can be found and updated with a simple QR scan before it is loaded onto the transporter.
+Once an order has been validated (for example, by means of an internal column "state"), it is ready for processing and being eventually delivered. From this point on, QR code labels that can be attached to the orders (package boxes or sometimes entire pallets) can be extremely helpful and time-saving for easy tracking and updating in the system: instead of manually searching for an order that needs to change from the status "Packed" to "In delivery" using the order ID, for example, the order can be found and updated with a simple QR scan before it is loaded onto the transporter.
 
 For this to work, it is necessary: 
 1. to add a QR column to a record (when configuring the column, the column whose value is to be used for the QR code is selected).
@@ -90,16 +90,27 @@ For this to work, it is necessary:
  It should be noted that the Geo features still require two essential core functions to enable a real, scalable production deployment: 
  1. setting the position using a movable marker on the map by the user
  2. searching for geopositions based on an address search)
-### Refugee Welcome Center
+### Scenario 2: Refugee Welcome Center
 
 This scenario concerns the registration of refugees in an initial reception facility and their management, for example, to be able to track at any time which residents have temporarily or permanently left the center and the number of available beds.
+For the registration and the check-in, check-out and other status updates (e.g. looking for volunteer drivers that could bring them into a different region) of residents of the center, QR-code wristbands that have pre-printed an encoded unique ID on them are given out to every new resident and attached with their respective data row in NocoDB. 
+
+Again we start with defining the basic table structure, including basic personal information like name, needed medical support level, the status of the resident (like 'Waiting for free spot', 'Left temporarily' or 'Left permanently' etc), as well as the unique QR Code id - both as an actual column for storing the value as well as a QR code column which will later on enable the scanner for finding people by the QR code, as well as showing the QR code as part of the on-screen details view of the person or for printing the QR code via the PDF export feature, in case that's needed. 
 
 <img src="demo-screenrecordings/WelcomeCenter_1.gif" alt="..." />
 
+Then, we create a form view that is used during the registration. The option 'Enable filling by scanner' will be activated for the field 'QR Wristband ID'.
+
+During filling the form for a new center resident, the QR scanner can now bused to quickly fill out the Id of the Wristband. 
+
 <img src="demo-screenrecordings/WelcomeCenter_2.gif" alt="..." />
+
+If then later the persons record should be opened (e.g. to check them out temporarily or permanently), the new QR scanner that is directly integrated in the Grid View if the new Mobile Mode is enabled can be used to quickly open the respective data row. 
 
 <img src="demo-screenrecordings/WelcomeCenter_3.gif" alt="..." />
 
+## How to activate the beta features?
+* TODO
 ## Links to relevant PRs and branches
 ### Geo Data and Map related
 * https://github.com/nocodb/nocodb/pull/4749
