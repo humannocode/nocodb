@@ -125,21 +125,16 @@ If then later the persons record should be opened (e.g. to check them out tempor
 ### Other
 * https://github.com/nocodb/nocodb/pull/5035/files
 * [PDF export of data rows](https://github.com/nocodb/nocodb/compare/develop...humannocode:nocodb:client-side-pdf-export-poc) - Prototype Branch, not merged
-## Need help? 
+## Need help or wanna help out? Write us! 
 Are you member of a NGO, social business or non-profit who wants help? 
 * Help with an onboarding session? 
 * Consultancy? 
 * Need a NocoDB feature for a certain use case? 
 * Feedback? 
 
-## Wanna help out? 
+Write us at humannocode@posteo.de
 
 ## Planned next steps
-
-## Additional resources
-* Prototpe Fund general page
-* NocoDB main page (GH and/or Website)
-* 
 
 ## Thank you
 * OKF
