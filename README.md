@@ -55,13 +55,19 @@ This concerns the provision of supplies to people in crisis areas who are curren
 #### Phase 1: Capturing the demand through easily fillable order forms.
 
 With NocoDB, a corresponding table structure can already be defined within a few minutes, which captures the relevant information for an order (request for aid supplies, for example, by a family in the crisis region).
+
 <img src="demo-screenrecordings/AidDelivery_1.gif" alt="..." />
+
 Based on this structure, a corresponding form can also be created within a few minutes, which can then be publicly shared via a URL.
+
 <img src="demo-screenrecordings/AidDelivery_2.gif" alt="..." />
-The first of the new functions we implemented as part of the funding that we would like to mention is the new column type 'Geodata', which stores geographic positions - in this case the location of the people who need the aid supplies - as latitude and longitude. 
+
+The first of the new functions we implemented as part of the funding is the new column type 'Geodata', which stores geographic positions - in this case the location of the people who need the aid supplies - as latitude and longitude. 
 
 This geoposition can also be easily determined automatically based on the GPS information of the mobile device when filling out the form.
+
 <img src="demo-screenrecordings/AidDelivery_3.gif" alt="..." />
+
 The form data of the orders made by the affected people are immediately stored in the table in NocoDB and can now be edited, sorted, filtered, and displayed in different view types as desired.
 
 To obtain a quick geographical overview, for example, of all previously made and all not yet delivered orders, users can now create a corresponding map view within seconds - this is the second new function (Map Viewtype). This view type also supports filtering of the data points to be displayed. When clicking on one of the markers (each marker represents a record in the table), the corresponding record is displayed in a popup and can be edited there (for example, corrections can be made to the order retrospectively and the order status can be changed).
@@ -74,10 +80,12 @@ Once an order has been validated (for example, by means of an internal column "s
 For this to work, it is necessary: 
 1. to add a QR column to a record (when configuring the column, the column whose value is to be used for the QR code is selected).
 2. that selected records of a table - along with the QR code - can be easily printed using the new prototype feature of PDF data export.
-<img src="demo-screenrecordings/AidDelivery_5.gif" alt="..." />
-3. the direct integration of a QR scanner in NocoDB, allowing the corresponding record of the shipment to be easily and quickly opened and edited using the QR code label.
-<img src="demo-screenrecordings/AidDelivery_6.gif" alt="..." />
 
+<img src="demo-screenrecordings/AidDelivery_5.gif" alt="..." />
+
+3. the direct integration of a QR scanner in NocoDB, allowing the corresponding record of the shipment to be easily and quickly opened and edited using the QR code label.
+
+<img src="demo-screenrecordings/AidDelivery_6.gif" alt="..." />
 
  It should be noted that the Geo features still require two essential core functions to enable a real, scalable production deployment: 
  1. setting the position using a movable marker on the map by the user
@@ -85,8 +93,11 @@ For this to work, it is necessary:
 ### Refugee Welcome Center
 
 This scenario concerns the registration of refugees in an initial reception facility and their management, for example, to be able to track at any time which residents have temporarily or permanently left the center and the number of available beds.
+
 <img src="demo-screenrecordings/WelcomeCenter_1.gif" alt="..." />
+
 <img src="demo-screenrecordings/WelcomeCenter_2.gif" alt="..." />
+
 <img src="demo-screenrecordings/WelcomeCenter_3.gif" alt="..." />
 
 ## Links to relevant PRs and branches
