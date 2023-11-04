@@ -70,6 +70,18 @@ const onClickSetCurrentLocation = () => {
   }
   navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
+
+const openInGoogleMaps = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+  window.open(url, '_blank')
+}
+
+const openInOSM = () => {
+  const [latitude, longitude] = (vModel.value || '').split(';')
+  const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -121,6 +133,12 @@ const onClickSetCurrentLocation = () => {
               @selectstart.capture.stop
               @mousedown.stop
             />
+          </div>
+        </a-form-item>
+        <a-form-item class="w-full" v-if="vModel">
+          <div class="flex items-end gap-1 text-left mx-2">
+            <a-button @click="openInGoogleMaps"><MdiOpenInNew class="mr-1" />Google Maps</a-button>
+            <a-button @click="openInOSM"><MdiOpenInNew class="mr-1" />OSM</a-button>
           </div>
         </a-form-item>
         <a-form-item>
