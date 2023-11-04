@@ -128,10 +128,38 @@ onMounted(async () => {
 
   myMapRef.value = myMap
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const base64Tile = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEWq09/P7Lz1AAAAH0lEQVRoge3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAvg0hAAABmmDh1QAAAABJRU5ErkJggg==`
+
+  L.tileLayer(base64Tile, {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
+
+
+
+
+  // const OSMlayerURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  // const londonLatLng = [51.5, -0.09]
+
+  // const imageId = '22935033'
+  // const apiKey = 'GZ8MhqoHL3gKML24PPjcge'
+  // const bandsFormula = encodeURIComponent('b04,b03,b02')
+  // // const imageTilesURL = `https://api.spectator.earth/imagery/${imageId}/tiles/{z}/{x}/{y}/?bands_formula=${bandsFormula}&api_key=${apiKey}`
+  // const imageTilesURL = `https://api.spectator.earth/imagery/24017184/tiles/{z}/{x}/{y}/?bands_formula=b4,b3,b2&api_key=GZ8MhqoHL3gKML24PPjcge`
+
+
+
+  // const map = L.map('map').setView(londonLatLng, 13)
+
+  // L.tileLayer(OSMlayerURL).addTo(map)
+  L.tileLayer(imageTilesURL).addTo(myMap)
+  // L.marker(londonLatLng).addTo(map).bindPopup('A pretty Sentinel-2 image.').openPopup()
+
+
+
+
+
+
 
   markersClusterGroupRef.value = L.markerClusterGroup({
     iconCreateFunction(cluster: { getChildCount: () => number }) {

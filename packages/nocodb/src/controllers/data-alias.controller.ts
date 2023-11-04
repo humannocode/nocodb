@@ -44,6 +44,7 @@ export class DataAliasController {
       tableName: tableName,
       viewName: viewName,
     });
+    console.log('FOO responseData', responseData);
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
     res.json(responseData);
