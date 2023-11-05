@@ -128,14 +128,22 @@ onMounted(async () => {
 
   myMapRef.value = myMap
 
-  const base64Tile = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEAAQMAAABmvDolAAAAA1BMVEWq09/P7Lz1AAAAH0lEQVRoge3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAvg0hAAABmmDh1QAAAABJRU5ErkJggg==`
+  
+  // L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  //   maxZoom: 19,
+  //   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  // }).addTo(myMap)
 
-  L.tileLayer(base64Tile, {
+  
+  const bounds = myMap.getBounds()
+  const bboxString = bounds.toBBoxString()
+  console.log('bboxString', bboxString)
+
+  
+  L.tileLayer(`http://127.0.0.1:5000/tiles?bbox=${bboxString}`, {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
-
-
 
 
   // const OSMlayerURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -152,7 +160,7 @@ onMounted(async () => {
   // const map = L.map('map').setView(londonLatLng, 13)
 
   // L.tileLayer(OSMlayerURL).addTo(map)
-  L.tileLayer(imageTilesURL).addTo(myMap)
+  // L.tileLayer(imageTilesURL).addTo(myMap)
   // L.marker(londonLatLng).addTo(map).bindPopup('A pretty Sentinel-2 image.').openPopup()
 
 
