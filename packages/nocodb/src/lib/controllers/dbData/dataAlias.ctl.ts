@@ -5,28 +5,6 @@ import apiMetrics from '../../meta/helpers/apiMetrics';
 import { parseHrtimeToSeconds } from '../../meta/api/helpers';
 import type { Request, Response } from 'express';
 
-// ------------------ Python Call Code ------------------
-// deps
-import { spawn } from 'child_process';
-import path from 'path';
-
-// constants
-const PROJECT_PATH = process.cwd();
-const PYTHON_PATH = path.join(PROJECT_PATH, 'src/lib/pythonScripts/index.py');
-
-const spawnPy = (data: any): Promise<any> =>
-  new Promise(function (success, error) {
-    const pyProg = spawn('python3', [PYTHON_PATH, JSON.stringify(data)]);
-
-    pyProg.stdout.on('data', function (data: any) {
-      success(data);
-    });
-
-    pyProg.stderr.on('data', (data: any) => {
-      error(data);
-    });
-  });
-
 // todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
   try {
@@ -38,20 +16,9 @@ async function dataList(req: Request, res: Response) {
       viewName: req.params.viewName,
     });
 
-    // python code
-    spawnPy(responseData.list)
-      .then(function (modifiedResponseData) {
-        responseData.list = JSON.parse(modifiedResponseData.toString());
-        const response = { ...responseData, customTile: 'test' };
-
-        const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
-        res.setHeader('xc-db-response', elapsedSeconds);
-        res.json(response);
-      })
-      .catch(function (error) {
-        console.log(error.toString());
-        throw new Error(error);
-      });
+    const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+      res.setHeader('xc-db-response', elapsedSeconds);
+      res.json(responseData);
   } catch (err) {
     throw new Error(err);
   }

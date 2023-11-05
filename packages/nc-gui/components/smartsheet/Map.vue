@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
+import type { Map } from 'leaflet'
 import 'leaflet.markercluster'
 import { ViewTypes } from 'nocodb-sdk'
 import { IsPublicInj, OpenNewRecordFormHookInj, latLongToJoinedString, onMounted, provide, ref } from '#imports'
@@ -22,6 +23,7 @@ const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn
   useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
+const currTileLayer = ref<L.ImageOverlay>()
 
 const mapContainerRef = ref<HTMLElement>()
 
@@ -104,6 +106,42 @@ const addMarker = (lat: number, long: number, row: Row) => {
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
 
+const throttleZoom = (callback: () => Promise<void>, delay: number) => {
+  let isThrottled = false
+
+  return async function () {
+    if (!isThrottled) {
+      await callback()
+      isThrottled = true
+      setTimeout(() => {
+        isThrottled = false
+      }, delay)
+    }
+  }
+}
+
+const updateTileLayer = async (map: Map) => {
+  try {
+    // Remove existing tile layer if it exists
+    if (currTileLayer.value && map.hasLayer(currTileLayer.value)) {
+      map.removeLayer(currTileLayer.value)
+    }
+
+    const bboxString = map.getBounds().toBBoxString()
+
+    // create new tile layer
+    const newTileLayer = L.imageOverlay(`http://127.0.0.1:5000/process_ndvi?bbox=${bboxString}`, map.getBounds(), {
+      opacity: 1,
+    })
+
+    newTileLayer.addTo(map)
+    // Update your reference to the current tile layer
+    currTileLayer.value = newTileLayer
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const resetZoomAndCenterBasedOnLocalStorage = () => {
   if (mapMetaData?.value?.fk_view_id == null) {
     return
@@ -128,10 +166,13 @@ onMounted(async () => {
 
   myMapRef.value = myMap
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const newDefaultTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(myMap)
+  })
+  newDefaultTileLayer.addTo(myMap)
+
+  const throttledUpdateTileLayer = throttleZoom(async () => updateTileLayer(myMap), 2000)
 
   markersClusterGroupRef.value = L.markerClusterGroup({
     iconCreateFunction(cluster: { getChildCount: () => number }) {
@@ -145,14 +186,16 @@ onMounted(async () => {
 
   myMap.addLayer(markersClusterGroupRef.value)
 
-  myMap.on('zoomend', function () {
+  myMap.on('zoomend', async function () {
     if (localStorage != null && mapMetaData?.value?.fk_view_id) {
+      await throttledUpdateTileLayer()
       localStorage.setItem(getMapZoomLocalStorageKey(mapMetaData.value.fk_view_id), myMap.getZoom().toString())
     }
   })
 
-  myMap.on('moveend', function () {
+  myMap.on('moveend', async function () {
     if (localStorage != null && mapMetaData?.value?.fk_view_id) {
+      await throttledUpdateTileLayer()
       localStorage.setItem(getMapCenterLocalStorageKey(mapMetaData?.value?.fk_view_id), JSON.stringify(myMap.getCenter()))
     }
   })
@@ -216,7 +259,7 @@ const count = computed(() => paginationData.value.totalRows)
   <a-modal v-model:visible="popupIsOpen" :footer="null" centered :closable="false" @close="popupIsOpen = false">
     <LazySmartsheetSharedMapMarkerPopup v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetSharedMapMarkerPopup>
   </a-modal>
-
+  <!-- <div v-if="isLoading" class="loader"></div> -->
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" class="w-full h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
@@ -281,5 +324,26 @@ const count = computed(() => paginationData.value.totalRows)
   display: flex;
   gap: 10px;
   flex-direction: column;
+}
+
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
